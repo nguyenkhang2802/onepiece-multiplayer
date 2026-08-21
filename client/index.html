@@ -45,6 +45,25 @@ body{overflow:hidden;background:#000;font-family:Arial,sans-serif;touch-action:n
 #mode-indicator{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.75);color:#0ff;padding:5px 16px;border-radius:20px;font-size:13px;z-index:30;display:none;border:1px solid #0ff}
 #mp-status{position:absolute;top:50px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#0f0;padding:5px 14px;border-radius:14px;font-size:13px;z-index:30;border:1px solid #0f0}
 #player-list{position:absolute;bottom:60px;right:12px;background:rgba(0,0,0,0.88);color:#fff;padding:10px 14px;border-radius:10px;font-size:12px;z-index:20;max-height:200px;overflow-y:auto;min-width:150px;border:1px solid rgba(0,255,255,0.3)}
+#chat-box{display:none;position:absolute;top:12px;left:12px;width:320px;max-height:220px;background:rgba(0,0,0,0.88);border:1px solid #0ff;border-radius:10px;z-index:50;flex-direction:column;overflow:hidden}
+#chat-messages{flex:1;overflow-y:auto;padding:8px 10px;font-size:12px;color:#fff;max-height:160px;line-height:1.4}
+#chat-input-row{display:flex;border-top:1px solid #333;padding:6px}
+#chat-input{flex:1;background:#111;border:1px solid #444;color:#fff;padding:6px 8px;border-radius:6px;font-size:13px;outline:none}
+#chat-send{margin-left:6px;padding:6px 12px;background:#0af;border:none;border-radius:6px;color:#fff;font-weight:bold;cursor:pointer}
+#inventory-btn{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:56px;height:56px;border-radius:12px;background:rgba(0,0,0,0.8);border:2px solid #ffd700;color:#ffd700;font-size:22px;z-index:40;cursor:pointer;display:flex;align-items:center;justify-content:center}
+#inventory-panel{display:none;position:absolute;left:80px;top:50%;transform:translateY(-50%);width:260px;max-height:360px;background:rgba(0,0,0,0.94);border:2px solid #ffd700;border-radius:14px;z-index:45;padding:12px;overflow-y:auto}
+#inventory-panel h4{text-align:center;color:#ffd700;margin-bottom:10px}
+.inv-item{display:flex;align-items:center;gap:10px;padding:8px;margin:4px 0;background:rgba(255,255,255,0.08);border-radius:8px;cursor:pointer}
+.inv-item:hover{background:rgba(0,180,255,0.3)}
+#auth-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:100;display:flex;align-items:center;justify-content:center}
+#auth-box{background:#111;border:2px solid #0ff;border-radius:16px;padding:28px 32px;width:90%;max-width:380px;color:#fff;text-align:center}
+#auth-box h2{color:#0ff;margin-bottom:18px}
+#auth-box input{width:100%;padding:10px 12px;margin:8px 0;border-radius:8px;border:1px solid #444;background:#222;color:#fff;font-size:15px}
+#auth-box button{margin:8px 6px 0;padding:10px 22px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:15px}
+#auth-login-btn{background:#0af;color:#fff}#auth-register-btn{background:#0c0;color:#fff}
+#auth-msg{color:#f55;margin-top:10px;font-size:13px;min-height:18px}
+#fruit-action-menu{display:none;position:absolute;background:rgba(0,0,0,0.95);border:2px solid #ffd700;border-radius:12px;padding:10px;z-index:60;flex-direction:column;gap:6px}
+#fruit-action-menu button{padding:8px 16px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;color:#fff}
 </style>
 </head>
 <body>
@@ -86,6 +105,45 @@ body{overflow:hidden;background:#000;font-family:Arial,sans-serif;touch-action:n
 <div id="mp-status">Đang kết nối server...</div>
 <div id="player-list"></div>
 <button id="btn-toggle-mobile">📱 Điện thoại</button>
+
+<!-- Auth -->
+<div id="auth-overlay">
+  <div id="auth-box">
+    <h2>One Piece 3D</h2>
+    <div id="auth-form">
+      <input id="auth-user" type="text" placeholder="Tên đăng nhập" maxlength="16">
+      <input id="auth-pass" type="password" placeholder="Mật khẩu" maxlength="24">
+      <div>
+        <button id="auth-login-btn">Đăng nhập</button>
+        <button id="auth-register-btn">Đăng ký</button>
+      </div>
+      <div id="auth-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Chat -->
+<div id="chat-box">
+  <div id="chat-messages"></div>
+  <div id="chat-input-row">
+    <input id="chat-input" type="text" placeholder="Nhập tin nhắn..." maxlength="120">
+    <button id="chat-send">Gửi</button>
+  </div>
+</div>
+
+<!-- Inventory -->
+<button id="inventory-btn" title="Túi đồ">🎒</button>
+<div id="inventory-panel">
+  <h4>Túi Đồ Trái Ác Quỷ</h4>
+  <div id="inventory-list"></div>
+</div>
+
+<!-- Fruit action menu -->
+<div id="fruit-action-menu">
+  <button id="fruit-act-cancel" style="background:#666">Hủy</button>
+  <button id="fruit-act-drop" style="background:#f90">Thả xuống đất</button>
+  <button id="fruit-act-store" style="background:#0a0">Lưu trữ</button>
+</div>
 
 <div id="npc-dialog">
   <div id="npc-text">Bạn muốn làm gì với NPC?</div>
@@ -485,7 +543,296 @@ function respawnNearNPC() {
   if (socket && isConnected) sendPlayerUpdate();
 }
 
-setTimeout(connectMultiplayer, 1000);
+// ==================== INVENTORY + FRUIT DROP + CHAT + AUTH ====================
+let fruitInventory = []; // array of fruit objects stored
+let droppedFruits = [];  // {id, fruit, mesh, x,y,z}
+let chatVisible = false;
+let currentAccount = null; // {username}
+
+function showAuth() {
+  document.getElementById('auth-overlay').style.display = 'flex';
+}
+function hideAuth() {
+  document.getElementById('auth-overlay').style.display = 'none';
+}
+
+document.getElementById('auth-register-btn').onclick = () => {
+  const user = document.getElementById('auth-user').value.trim();
+  const pass = document.getElementById('auth-pass').value;
+  if (!user || !pass) { document.getElementById('auth-msg').textContent = 'Nhập đủ tên và mật khẩu!'; return; }
+  if (socket && isConnected) {
+    socket.emit('register', { username: user, password: pass });
+  } else {
+    document.getElementById('auth-msg').textContent = 'Chưa kết nối server!';
+  }
+};
+document.getElementById('auth-login-btn').onclick = () => {
+  const user = document.getElementById('auth-user').value.trim();
+  const pass = document.getElementById('auth-pass').value;
+  if (!user || !pass) { document.getElementById('auth-msg').textContent = 'Nhập đủ tên và mật khẩu!'; return; }
+  if (socket && isConnected) {
+    socket.emit('login', { username: user, password: pass });
+  } else {
+    document.getElementById('auth-msg').textContent = 'Chưa kết nối server!';
+  }
+};
+
+function toggleChat() {
+  chatVisible = !chatVisible;
+  document.getElementById('chat-box').style.display = chatVisible ? 'flex' : 'none';
+  if (chatVisible) {
+    document.getElementById('chat-input').focus();
+    if (document.pointerLockElement) document.exitPointerLock();
+  }
+}
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text || !socket || !isConnected) return;
+  socket.emit('chat', text);
+  input.value = '';
+}
+document.getElementById('chat-send').onclick = sendChat;
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.code === 'Enter') { e.preventDefault(); sendChat(); }
+  e.stopPropagation();
+});
+
+function addChatMessage(name, text) {
+  const box = document.getElementById('chat-messages');
+  const line = document.createElement('div');
+  line.innerHTML = `<b style="color:#0ff">${name}</b>: ${text}`;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+
+function toggleInventory() {
+  const panel = document.getElementById('inventory-panel');
+  panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+  renderInventory();
+}
+document.getElementById('inventory-btn').onclick = toggleInventory;
+
+function renderInventory() {
+  const list = document.getElementById('inventory-list');
+  list.innerHTML = '';
+  if (fruitInventory.length === 0) {
+    list.innerHTML = '<div style="text-align:center;opacity:0.6;padding:10px">Trống</div>';
+    return;
+  }
+  fruitInventory.forEach((f, idx) => {
+    const div = document.createElement('div');
+    div.className = 'inv-item';
+    div.innerHTML = `<span style="width:14px;height:14px;border-radius:50%;background:#${f.color.toString(16).padStart(6,'0')};display:inline-block"></span> <b>${f.name}</b> <small>(${f.type})</small>`;
+    div.onclick = () => {
+      // Lấy ra cầm
+      if (heldFruit) {
+        document.getElementById('status').textContent = 'Đang cầm trái rồi! Hãy thả hoặc lưu trước.';
+        return;
+      }
+      heldFruit = fruitInventory.splice(idx, 1)[0];
+      if (fruitModel) scene.remove(fruitModel);
+      fruitModel = createFruitModel(heldFruit);
+      fruitModel.position.copy(player.position); fruitModel.position.y += 2.3;
+      scene.add(fruitModel);
+      document.getElementById('fruit-status').style.display = 'block';
+      document.getElementById('fruit-name').textContent = heldFruit.name + ' (chưa ăn)';
+      document.getElementById('status').textContent = `Đã lấy ${heldFruit.name} ra. Nhấn 1 để ăn.`;
+      renderInventory();
+    };
+    list.appendChild(div);
+  });
+}
+
+function showFruitActionMenu(x, y) {
+  const menu = document.getElementById('fruit-action-menu');
+  menu.style.display = 'flex';
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+}
+function hideFruitActionMenu() {
+  document.getElementById('fruit-action-menu').style.display = 'none';
+}
+document.getElementById('fruit-act-cancel').onclick = hideFruitActionMenu;
+document.getElementById('fruit-act-store').onclick = () => {
+  if (!heldFruit) return;
+  fruitInventory.push(heldFruit);
+  heldFruit = null;
+  if (fruitModel) { scene.remove(fruitModel); fruitModel = null; }
+  document.getElementById('fruit-name').textContent = 'Không';
+  document.getElementById('status').textContent = 'Đã lưu trái vào túi đồ!';
+  hideFruitActionMenu();
+  renderInventory();
+};
+document.getElementById('fruit-act-drop').onclick = () => {
+  if (!heldFruit || !socket || !isConnected) return;
+  const pos = player.position.clone();
+  pos.y = (typeof LAND_SURFACE !== 'undefined' ? LAND_SURFACE : 6) + 0.5;
+  socket.emit('dropFruit', {
+    fruit: heldFruit,
+    x: pos.x, y: pos.y, z: pos.z
+  });
+  heldFruit = null;
+  if (fruitModel) { scene.remove(fruitModel); fruitModel = null; }
+  document.getElementById('fruit-name').textContent = 'Không';
+  document.getElementById('status').textContent = 'Đã thả trái xuống đất!';
+  hideFruitActionMenu();
+};
+
+// Click fruit model to open menu (PC)
+document.addEventListener('click', e => {
+  if (!heldFruit || !fruitModel) return;
+  // simple: if clicking near center and holding fruit
+  if (e.target === renderer.domElement && e.button === 0 && !isMobileMode) {
+    // open menu near mouse
+    showFruitActionMenu(e.clientX, e.clientY);
+  }
+});
+
+// Mobile: long-press or button later - for now use inventory
+
+function applySavedData(data) {
+  if (!data) return;
+  if (data.level) playerLevel = data.level;
+  if (data.exp != null) playerExp = data.exp;
+  if (data.maxHp) playerMaxHP = data.maxHp;
+  if (data.hp != null) playerHP = data.hp;
+  if (data.dollars != null) dollars = data.dollars;
+  if (data.damageMult) damageMult = data.damageMult;
+  if (data.destroyMult) destroyMult = data.destroyMult;
+  if (data.inventory) fruitInventory = data.inventory;
+  if (data.activeFruitId) {
+    const f = FRUIT_LIST.find(x => x.id === data.activeFruitId);
+    if (f) { activeFruit = f; document.getElementById('fruit-status').style.display='block'; document.getElementById('fruit-name').textContent = f.name; }
+  }
+  updateLevelUI(); updateHP(); updateDollar(); renderInventory();
+}
+
+function getSaveData() {
+  return {
+    level: playerLevel, exp: playerExp, maxHp: playerMaxHP, hp: playerHP,
+    dollars, damageMult, destroyMult,
+    inventory: fruitInventory,
+    activeFruitId: activeFruit ? activeFruit.id : null
+  };
+}
+
+// Override connect to handle auth events
+const _oldConnect = connectMultiplayer;
+connectMultiplayer = function() {
+  try {
+    socket = io(SERVER_URL, { transports: ['websocket', 'polling'] });
+    socket.on('connect', () => {
+      isConnected = true;
+      myId = socket.id;
+      document.getElementById('mp-status').textContent = '✅ Server sẵn sàng - Hãy đăng nhập';
+      document.getElementById('mp-status').style.color = '#0f0';
+      showAuth();
+    });
+    socket.on('disconnect', () => {
+      isConnected = false;
+      document.getElementById('mp-status').textContent = '❌ Mất kết nối server';
+      document.getElementById('mp-status').style.color = '#f55';
+    });
+    socket.on('registerResult', (res) => {
+      if (res.ok) {
+        document.getElementById('auth-msg').style.color = '#0f0';
+        document.getElementById('auth-msg').textContent = 'Đăng ký thành công! Hãy đăng nhập.';
+      } else {
+        document.getElementById('auth-msg').style.color = '#f55';
+        document.getElementById('auth-msg').textContent = res.msg || 'Lỗi đăng ký';
+      }
+    });
+    socket.on('loginResult', (res) => {
+      if (res.ok) {
+        currentAccount = { username: res.username };
+        hideAuth();
+        applySavedData(res.data);
+        socket.emit('join', { name: res.username });
+        document.getElementById('mp-status').textContent = '✅ Đã đăng nhập: ' + res.username;
+        document.getElementById('status').textContent = 'Chào mừng ' + res.username + '!';
+      } else {
+        document.getElementById('auth-msg').style.color = '#f55';
+        document.getElementById('auth-msg').textContent = res.msg || 'Sai tài khoản hoặc mật khẩu';
+      }
+    });
+    socket.on('currentPlayers', (all) => {
+      for (const id in all) if (id !== myId) addOtherPlayer(all[id]);
+    });
+    socket.on('playerJoined', (data) => {
+      if (data.id !== myId) {
+        addOtherPlayer(data);
+        document.getElementById('status').textContent = `${data.name} đã vào game!`;
+      }
+    });
+    socket.on('playerMoved', (data) => {
+      if (data.id !== myId) updateOtherPlayer(data);
+    });
+    socket.on('playerLeft', (id) => removeOtherPlayer(id));
+    socket.on('playerDamaged', (data) => {
+      if (data.targetId === myId) {
+        playerHP = data.newHp; updateHP();
+        document.getElementById('status').textContent = `Bị đánh! -${data.damage} HP`;
+        if (playerHP <= 0) respawnNearNPC();
+      } else if (otherPlayers[data.targetId]) {
+        otherPlayers[data.targetId].data.hp = data.newHp;
+        updatePlayerListUI();
+      }
+    });
+    socket.on('playerRespawned', (data) => {
+      if (data.id === myId) {
+        player.position.set(data.x, data.y, data.z);
+        playerHP = data.hp; playerMaxHP = data.maxHp;
+        isGiant = false; isDragon = false; isFlying = false;
+        player.scale.set(1,1,1); buildHumanForm(); updateHP();
+        document.getElementById('status').textContent = 'Bạn đã hồi sinh gần NPC!';
+      } else if (otherPlayers[data.id]) {
+        const op = otherPlayers[data.id];
+        op.mesh.position.set(data.x, data.y, data.z);
+        op.data.hp = data.hp; op.mesh.scale.set(1,1,1);
+        updatePlayerListUI();
+      }
+    });
+    socket.on('chatMessage', (msg) => {
+      addChatMessage(msg.name, msg.text);
+    });
+    socket.on('fruitDropped', (data) => {
+      // create fruit mesh on ground
+      const m = createFruitModel(data.fruit);
+      m.position.set(data.x, data.y, data.z);
+      scene.add(m);
+      droppedFruits.push({ id: data.id, fruit: data.fruit, mesh: m, x: data.x, y: data.y, z: data.z });
+    });
+    socket.on('fruitPicked', (data) => {
+      const idx = droppedFruits.findIndex(d => d.id === data.id);
+      if (idx >= 0) {
+        scene.remove(droppedFruits[idx].mesh);
+        droppedFruits.splice(idx, 1);
+      }
+      if (data.pickerId === myId) {
+        heldFruit = data.fruit;
+        if (fruitModel) scene.remove(fruitModel);
+        fruitModel = createFruitModel(data.fruit);
+        fruitModel.position.copy(player.position); fruitModel.position.y += 2.3;
+        scene.add(fruitModel);
+        document.getElementById('fruit-status').style.display = 'block';
+        document.getElementById('fruit-name').textContent = data.fruit.name + ' (chưa ăn)';
+        document.getElementById('status').textContent = `Nhặt được ${data.fruit.name}! Nhấn 1 để ăn hoặc lưu trữ.`;
+      }
+    });
+    // Auto-save every 20s
+    setInterval(() => {
+      if (socket && isConnected && currentAccount) {
+        socket.emit('saveData', getSaveData());
+      }
+    }, 20000);
+  } catch (e) {
+    console.error(e);
+    document.getElementById('mp-status').textContent = '⚠️ Chạy offline';
+  }
+};
+
+setTimeout(connectMultiplayer, 800);
 
 // ==================== WORLD ====================
 const buildings=[], cars=[], people=[], effects=[], lightnings=[], earthWalls=[], destroyedBuildings=[];
@@ -1027,11 +1374,25 @@ function toggleObservationHaki(){
   isObservationHaki=!isObservationHaki;
   const statusEl=document.getElementById('haki-status');
   if(isObservationHaki){
-    statusEl.style.display='block'; document.getElementById('status').textContent='Haki Quan Sát: BẬT (Người chơi = ĐỎ • Quái ≤500u xanh)';
-    scene.fog=new THREE.FogExp2(0x0a0a18,0.0012); hemiLight.intensity=0.2;
+    statusEl.style.display='block'; document.getElementById('status').textContent='Haki Quan Sát: BẬT (Người chơi = ĐỎ • Quái xanh • Thế giới tối)';
+    // Làm tối toàn bộ bầu trời + môi trường
+    if(skyMat){
+      skyMat.uniforms.topColor.value.setHex(0x050510);
+      skyMat.uniforms.bottomColor.value.setHex(0x0a0a20);
+    }
+    scene.fog=new THREE.FogExp2(0x050510,0.0018);
+    hemiLight.intensity=0.08;
+    dirLight.intensity=0.15;
+    if(sunMesh) sunMesh.visible=false;
+    if(sunGlow) sunGlow.visible=false;
   } else {
     statusEl.style.display='none'; document.getElementById('status').textContent='Haki Quan Sát: TẮT • '+DAY_PHASES[currentPhaseIdx].name;
     monsters.forEach(m=>setMobHakiGlow(m,false));
+    // Khôi phục ánh sáng ngày/đêm
+    hemiLight.intensity=0.38;
+    dirLight.intensity=1.45;
+    if(sunMesh) sunMesh.visible=true;
+    if(sunGlow) sunGlow.visible=true;
   }
   updateAllOthersHakiColor();
 }
@@ -1156,6 +1517,7 @@ document.addEventListener('keydown',e=>{
   if(e.code==='KeyO') createEarthWall();
   if(e.code==='KeyE') toggleObservationHaki();
   if(e.code==='Digit4'&&(e.shiftKey||keys['ShiftLeft']||keys['ShiftRight'])){ dollars+=1000; updateDollar(); document.getElementById('status').textContent='+1000$ (Shift+4)!'; }
+  else if(e.code==='Digit4'){ toggleChat(); }
   // Shift+5: Teleport đến NPC bán trái
   if(e.code==='Digit5'&&(e.shiftKey||keys['ShiftLeft']||keys['ShiftRight'])){ teleportToFruitNPC(); }
   // Shift+6: Tăng cấp liên tục đến cấp 100
@@ -1457,7 +1819,8 @@ function update(){
   updateDayNight(dt); drawMinimap(); updateMonsters(dt);
   const inOcean=isInOcean(player.position.x,player.position.z);
 
-  if(activeFruit&&inOcean&&!onBoat){
+  // Chỉ mất máu khi đã ĂN trái + đang CHẠM NƯỚC (không bay cao)
+  if(activeFruit && inOcean && !onBoat && !isFlying && player.position.y < 3){
     playerHP=Math.max(0,playerHP-0.5*dt); updateHP();
     if(Math.floor(performance.now()/800)%2===0) document.getElementById('status').textContent='💦 Trái Ác Quỷ yếu dưới nước! -0.5 HP/s';
     if(playerHP<=0) respawnNearNPC();
