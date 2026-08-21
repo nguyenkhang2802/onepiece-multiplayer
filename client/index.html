@@ -60,6 +60,7 @@ body{overflow:hidden;background:#000;font-family:Arial,sans-serif;touch-action:n
   1 : Ăn trái • <b>2</b> : Bản đồ • <b>3</b> : Lên/Xuống tàu<br>
   Farm quái: +4$ / con • <b>Shift+4</b> : +1000$<br>
   <b>Shift+5</b> : Dịch chuyển đến NPC bán trái (đảo hiện tại)<br>
+  <b>Shift+6</b> : Tăng cấp liên tục đến cấp 100 (max)<br>
   Ăn trái + xuống biển (không tàu): -0.5 HP/s<br>
   Z X C V : Chiêu trái<br>
   O : Tường • E : Haki (Người chơi = ĐỎ • Quái xanh)<br>
@@ -1157,6 +1158,34 @@ document.addEventListener('keydown',e=>{
   if(e.code==='Digit4'&&(e.shiftKey||keys['ShiftLeft']||keys['ShiftRight'])){ dollars+=1000; updateDollar(); document.getElementById('status').textContent='+1000$ (Shift+4)!'; }
   // Shift+5: Teleport đến NPC bán trái
   if(e.code==='Digit5'&&(e.shiftKey||keys['ShiftLeft']||keys['ShiftRight'])){ teleportToFruitNPC(); }
+  // Shift+6: Tăng cấp liên tục đến cấp 100
+  if(e.code==='Digit6'&&(e.shiftKey||keys['ShiftLeft']||keys['ShiftRight'])){
+    if(playerLevel >= 100){
+      document.getElementById('status').textContent='Đã đạt cấp tối đa 100!';
+    } else {
+      document.getElementById('status').textContent='⚡ Đang tăng cấp liên tục đến 100...';
+      const levelUpInterval = setInterval(()=>{
+        if(playerLevel >= 100){
+          clearInterval(levelUpInterval);
+          playerLevel = 100;
+          playerExp = 0;
+          updateLevelUI();
+          document.getElementById('status').textContent='🎉 ĐÃ ĐẠT CẤP TỐI ĐA 100!';
+          return;
+        }
+        // Tăng 1 cấp + chỉ số tương ứng
+        playerLevel++;
+        playerMaxHP += 2.5;
+        playerHP = Math.min(playerMaxHP, playerHP + 2.5);
+        damageMult += 0.08;
+        destroyMult += 0.06;
+        playerExp = 0;
+        updateLevelUI();
+        updateHP();
+        document.getElementById('status').textContent=`⚡ Cấp ${playerLevel}/100`;
+      }, 40); // mỗi 40ms tăng 1 cấp → rất nhanh
+    }
+  }
   if(e.code==='Digit0'){ if(document.pointerLockElement) document.exitPointerLock(); document.getElementById('status').textContent='Đã mở khóa chuột (phím 0)'; }
 });
 document.addEventListener('keyup',e=>keys[e.code]=false);
