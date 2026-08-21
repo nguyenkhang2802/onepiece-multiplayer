@@ -550,10 +550,12 @@ let chatVisible = false;
 let currentAccount = null; // {username}
 
 function showAuth() {
-  document.getElementById('auth-overlay').style.display = 'flex';
+  const ov = document.getElementById('auth-overlay');
+  if (ov) { ov.style.display = 'flex'; ov.style.visibility = 'visible'; }
 }
 function hideAuth() {
-  document.getElementById('auth-overlay').style.display = 'none';
+  const ov = document.getElementById('auth-overlay');
+  if (ov) { ov.style.display = 'none'; ov.style.visibility = 'hidden'; ov.style.pointerEvents = 'none'; }
 }
 
 document.getElementById('auth-register-btn').onclick = () => {
@@ -737,20 +739,29 @@ connectMultiplayer = function() {
     socket.on('registerResult', (res) => {
       if (res.ok) {
         document.getElementById('auth-msg').style.color = '#0f0';
-        document.getElementById('auth-msg').textContent = 'Đăng ký thành công! Hãy đăng nhập.';
+        document.getElementById('auth-msg').textContent = 'Đăng ký thành công! Đang tự đăng nhập...';
+        // Tự động đăng nhập luôn sau khi đăng ký
+        const user = document.getElementById('auth-user').value.trim();
+        const pass = document.getElementById('auth-pass').value;
+        setTimeout(() => {
+          socket.emit('login', { username: user, password: pass });
+        }, 400);
       } else {
         document.getElementById('auth-msg').style.color = '#f55';
-        document.getElementById('auth-msg').textContent = res.msg || 'Lỗi đăng ký';
+        document.getElementById('auth-msg').textContent = res.msg || 'Lỗi đăng ký (có thể trùng tên)';
       }
     });
     socket.on('loginResult', (res) => {
       if (res.ok) {
         currentAccount = { username: res.username };
         hideAuth();
+        // Đảm bảo ẩn chắc chắn
+        const ov = document.getElementById('auth-overlay');
+        if (ov) { ov.style.display = 'none'; ov.style.visibility = 'hidden'; }
         applySavedData(res.data);
         socket.emit('join', { name: res.username });
         document.getElementById('mp-status').textContent = '✅ Đã đăng nhập: ' + res.username;
-        document.getElementById('status').textContent = 'Chào mừng ' + res.username + '!';
+        document.getElementById('status').textContent = 'Chào mừng ' + res.username + '! Click để chơi';
       } else {
         document.getElementById('auth-msg').style.color = '#f55';
         document.getElementById('auth-msg').textContent = res.msg || 'Sai tài khoản hoặc mật khẩu';
