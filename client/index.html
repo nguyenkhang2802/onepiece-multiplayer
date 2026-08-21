@@ -3,49 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>One Piece 3D Multiplayer</title>
+<title>One Piece 3D - Blox Fruits Multiplayer</title>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{overflow:hidden;background:#000;font-family:Arial,sans-serif;touch-action:none}
 #info{position:absolute;top:10px;left:10px;color:#fff;background:rgba(0,0,0,.9);padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.5;z-index:20;pointer-events:none;display:none;max-width:340px}
-#crosshair{position:absolute;top:50%;left:50%;width:6px;height:6px;margin:-3px 0 0 -3px;background:#0f6;border-radius:50%;box-shadow:0 0 6px #0f6;pointer-events:none;z-index:15}
-#hud{position:absolute;top:10px;right:10px;color:#fff;background:rgba(0,0,0,.88);padding:10px 14px;border-radius:10px;font-size:14px;z-index:20;min-width:210px}
-#health-bar,#exp-bar{width:160px;height:12px;background:#333;border-radius:6px;margin-top:4px;overflow:hidden}
-#health-fill{height:100%;width:100%;background:linear-gradient(90deg,#22c,#8f4);transition:width .12s}
-#exp-fill{height:100%;width:0%;background:linear-gradient(90deg,#0af,#0ff);transition:width .15s}
-#charge,#form-status,#fruit-status,#haki-status,#hero-status{font-weight:bold;margin-top:4px;display:none}
-#charge{color:#0ff}#form-status{color:#fa0}#fruit-status{color:#ff0}#haki-status{color:#0f0}#hero-status{color:#f55}
-#level-text{color:#0ff;font-weight:bold;margin-top:4px}
-#dollar{color:#0f0;font-weight:bold;margin-top:4px}
-#status{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.85);padding:6px 18px;border-radius:20px;font-size:13px;z-index:20}
-#npc-dialog{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.95);color:#fff;padding:22px 28px;border-radius:14px;z-index:30;display:none;text-align:center;min-width:340px;border:2px solid #ffd700}
-#npc-dialog button{margin:10px 6px 0;padding:9px 20px;border:none;border-radius:8px;font-size:15px;cursor:pointer;font-weight:bold}
+#crosshair{position:absolute;top:50%;left:50%;width:8px;height:8px;margin:-4px 0 0 -4px;background:#0ff;border-radius:50%;box-shadow:0 0 10px #0ff,0 0 20px #0af;pointer-events:none;z-index:15}
+#hud{position:absolute;top:10px;right:10px;color:#fff;background:rgba(0,0,0,.88);padding:12px 16px;border-radius:12px;font-size:14px;z-index:20;min-width:220px;border:1px solid rgba(0,255,255,0.3)}
+#health-bar,#exp-bar{width:170px;height:14px;background:#222;border-radius:8px;margin-top:5px;overflow:hidden;border:1px solid #444}
+#health-fill{height:100%;width:100%;background:linear-gradient(90deg,#0f0,#8f4);transition:width .12s;box-shadow:0 0 8px #0f0}
+#exp-fill{height:100%;width:0%;background:linear-gradient(90deg,#0af,#0ff);transition:width .15s;box-shadow:0 0 8px #0ff}
+#charge,#form-status,#fruit-status,#haki-status,#hero-status{font-weight:bold;margin-top:5px;display:none}
+#charge{color:#0ff;text-shadow:0 0 8px #0ff}#form-status{color:#fa0}#fruit-status{color:#ff0;text-shadow:0 0 6px #ff0}#haki-status{color:#0f0}#hero-status{color:#f55}
+#level-text{color:#0ff;font-weight:bold;margin-top:5px}
+#dollar{color:#0f0;font-weight:bold;margin-top:5px;text-shadow:0 0 6px #0f0}
+#status{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.85);padding:8px 22px;border-radius:22px;font-size:14px;z-index:20;border:1px solid rgba(0,255,255,0.4);text-shadow:0 0 6px #0ff}
+#npc-dialog{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.95);color:#fff;padding:24px 30px;border-radius:16px;z-index:30;display:none;text-align:center;min-width:360px;border:2px solid #ffd700;box-shadow:0 0 30px rgba(255,215,0,0.3)}
+#npc-dialog button{margin:12px 8px 0;padding:10px 22px;border:none;border-radius:10px;font-size:15px;cursor:pointer;font-weight:bold}
 #btn-ok{background:#0c0;color:#fff}#btn-buy{background:#f90;color:#fff}#btn-cancel{background:#c00;color:#fff}
-#shop-ui{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.96);color:#fff;padding:18px;border-radius:14px;z-index:40;display:none;width:92%;max-width:540px;max-height:82vh;overflow-y:auto;border:2px solid #ffd700}
-#shop-ui h3{text-align:center;margin-bottom:12px;color:#ffd700}
-.fruit-item{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.08);margin:6px 0;padding:11px 14px;border-radius:10px;cursor:pointer}
-.fruit-item:hover{background:rgba(0,180,255,0.3)}
-.fruit-name{font-weight:bold}.fruit-price{color:#0f0;font-weight:bold;font-size:16px}.fruit-rarity{font-size:12px;opacity:0.85}
-#shop-close{display:block;margin:16px auto 0;padding:9px 28px;background:#c00;color:#fff;border:none;border-radius:8px;font-weight:bold;cursor:pointer}
-#btn-toggle-mobile{position:absolute;top:12px;left:12px;z-index:40;padding:8px 14px;border-radius:20px;border:2px solid #0ff;background:rgba(0,0,0,0.75);color:#0ff;font-size:14px;font-weight:bold;cursor:pointer}
+#shop-ui{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.96);color:#fff;padding:20px;border-radius:16px;z-index:40;display:none;width:92%;max-width:560px;max-height:82vh;overflow-y:auto;border:2px solid #ffd700;box-shadow:0 0 40px rgba(255,215,0,0.25)}
+#shop-ui h3{text-align:center;margin-bottom:14px;color:#ffd700;text-shadow:0 0 10px #ffd700}
+.fruit-item{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.08);margin:7px 0;padding:12px 15px;border-radius:12px;cursor:pointer;transition:0.15s}
+.fruit-item:hover{background:rgba(0,180,255,0.35);transform:scale(1.02)}
+.fruit-name{font-weight:bold}.fruit-price{color:#0f0;font-weight:bold;font-size:16px;text-shadow:0 0 6px #0f0}.fruit-rarity{font-size:12px;opacity:0.85}
+#shop-close{display:block;margin:18px auto 0;padding:10px 30px;background:#c00;color:#fff;border:none;border-radius:10px;font-weight:bold;cursor:pointer}
+#btn-toggle-mobile{position:absolute;top:12px;left:12px;z-index:40;padding:9px 16px;border-radius:22px;border:2px solid #0ff;background:rgba(0,0,0,0.8);color:#0ff;font-size:14px;font-weight:bold;cursor:pointer;box-shadow:0 0 12px rgba(0,255,255,0.3)}
 #mobile-controls{display:none;position:absolute;inset:0;z-index:25;pointer-events:none}
-.mobile-btn{position:absolute;width:60px;height:60px;border-radius:50%;background:rgba(0,0,0,0.55);border:2px solid rgba(255,255,255,0.5);color:#fff;font-size:13px;font-weight:bold;display:flex;align-items:center;justify-content:center;pointer-events:auto;user-select:none;touch-action:none;text-align:center;line-height:1.2}
-.mobile-btn:active,.mobile-btn.active{background:rgba(0,180,255,0.7);border-color:#0ff}
-#joy-zone{position:absolute;left:20px;bottom:30px;width:140px;height:140px;pointer-events:auto;touch-action:none}
-#joy-base{width:140px;height:140px;border-radius:50%;background:rgba(0,0,0,0.4);border:2px solid rgba(255,255,255,0.35);position:relative}
-#joy-stick{width:60px;height:60px;border-radius:50%;background:rgba(0,180,255,0.7);border:2px solid #fff;position:absolute;left:40px;top:40px;pointer-events:none}
+.mobile-btn{position:absolute;width:62px;height:62px;border-radius:50%;background:rgba(0,0,0,0.6);border:2px solid rgba(0,255,255,0.5);color:#fff;font-size:13px;font-weight:bold;display:flex;align-items:center;justify-content:center;pointer-events:auto;user-select:none;touch-action:none;text-align:center;line-height:1.2;box-shadow:0 0 10px rgba(0,255,255,0.2)}
+.mobile-btn:active,.mobile-btn.active{background:rgba(0,180,255,0.75);border-color:#0ff;box-shadow:0 0 18px #0ff}
+#joy-zone{position:absolute;left:20px;bottom:30px;width:145px;height:145px;pointer-events:auto;touch-action:none}
+#joy-base{width:145px;height:145px;border-radius:50%;background:rgba(0,0,0,0.45);border:2px solid rgba(0,255,255,0.4);position:relative}
+#joy-stick{width:62px;height:62px;border-radius:50%;background:rgba(0,180,255,0.75);border:2px solid #fff;position:absolute;left:41px;top:41px;pointer-events:none;box-shadow:0 0 12px #0af}
 #btn-jump{right:30px;bottom:160px}#btn-down{right:30px;bottom:90px}#btn-shoot{right:100px;bottom:90px}#btn-punch{right:100px;bottom:160px}
-#btn-z{right:30px;bottom:240px;background:rgba(80,0,120,0.6)}#btn-x{right:100px;bottom:240px;background:rgba(80,0,120,0.6)}
-#btn-c{right:30px;bottom:310px;background:rgba(80,0,120,0.6)}#btn-v{right:100px;bottom:310px;background:rgba(80,0,120,0.6)}
-#btn-eat{left:180px;bottom:30px;width:70px;height:50px;border-radius:12px}#btn-npc{left:180px;bottom:90px;width:70px;height:50px;border-radius:12px}
-#btn-skill1{left:260px;bottom:30px;width:55px;height:50px;border-radius:12px;font-size:12px}#btn-skill2{left:260px;bottom:90px;width:55px;height:50px;border-radius:12px;font-size:12px}
-#btn-wall{left:180px;bottom:150px;width:70px;height:50px;border-radius:12px;background:rgba(139,69,19,0.7)}
-#btn-haki{left:260px;bottom:150px;width:55px;height:50px;border-radius:12px;background:rgba(0,200,0,0.6);font-size:12px}
-#mode-indicator{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#0ff;padding:4px 14px;border-radius:20px;font-size:13px;z-index:30;display:none}
-#mp-status{position:absolute;top:50px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#0f0;padding:4px 12px;border-radius:12px;font-size:12px;z-index:30}
-#player-list{position:absolute;bottom:50px;right:10px;background:rgba(0,0,0,0.85);color:#fff;padding:8px 12px;border-radius:8px;font-size:12px;z-index:20;max-height:180px;overflow-y:auto;min-width:140px}
-.name-tag{position:absolute;color:#fff;background:rgba(0,0,0,0.7);padding:2px 6px;border-radius:4px;font-size:11px;pointer-events:none;white-space:nowrap}
+#btn-z{right:30px;bottom:240px;background:rgba(80,0,120,0.65)}#btn-x{right:100px;bottom:240px;background:rgba(80,0,120,0.65)}
+#btn-c{right:30px;bottom:310px;background:rgba(80,0,120,0.65)}#btn-v{right:100px;bottom:310px;background:rgba(80,0,120,0.65)}
+#btn-eat{left:180px;bottom:30px;width:72px;height:52px;border-radius:14px}#btn-npc{left:180px;bottom:90px;width:72px;height:52px;border-radius:14px}
+#btn-skill1{left:260px;bottom:30px;width:58px;height:52px;border-radius:14px;font-size:12px}#btn-skill2{left:260px;bottom:90px;width:58px;height:52px;border-radius:14px;font-size:12px}
+#btn-wall{left:180px;bottom:150px;width:72px;height:52px;border-radius:14px;background:rgba(139,69,19,0.75)}
+#btn-haki{left:260px;bottom:150px;width:58px;height:52px;border-radius:14px;background:rgba(0,200,0,0.65);font-size:12px}
+#mode-indicator{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.75);color:#0ff;padding:5px 16px;border-radius:20px;font-size:13px;z-index:30;display:none;border:1px solid #0ff}
+#mp-status{position:absolute;top:50px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#0f0;padding:5px 14px;border-radius:14px;font-size:13px;z-index:30;border:1px solid #0f0}
+#player-list{position:absolute;bottom:60px;right:12px;background:rgba(0,0,0,0.88);color:#fff;padding:10px 14px;border-radius:10px;font-size:12px;z-index:20;max-height:200px;overflow-y:auto;min-width:150px;border:1px solid rgba(0,255,255,0.3)}
 </style>
 </head>
 <body>
@@ -57,12 +56,15 @@ body{overflow:hidden;background:#000;font-family:Arial,sans-serif;touch-action:n
   Chuột trái : Laser • F / Chuột phải : Đấm<br>
   R : Tụ sấm • T : Bắn sấm<br>
   Y : Phóng to • U : Rồng • I : Phun lửa<br>
-  G : NPC • 1 : Ăn trái<br>
-  Z X C V : Chiêu trái (mỗi trái khác nhau)<br>
-  O : Tường Đất • E : Haki (người chơi hiện ĐỎ)<br>
-  <b>0</b> : Mở khóa chuột<br>
-  Q : Ẩn/hiện bảng này<br>
-  <b style="color:#0ff">MULTIPLAYER:</b> Đấm/Laser/Chiêu trúng người chơi khác → trừ 0.2 HP. Chết → hồi sinh gần NPC.
+  G : NPC (tím=trái, xanh=thuyền)<br>
+  1 : Ăn trái • <b>2</b> : Bản đồ • <b>3</b> : Lên/Xuống tàu<br>
+  Farm quái: +4$ / con • <b>Shift+4</b> : +1000$<br>
+  <b>Shift+5</b> : Dịch chuyển đến NPC bán trái (đảo hiện tại)<br>
+  Ăn trái + xuống biển (không tàu): -0.5 HP/s<br>
+  Z X C V : Chiêu trái<br>
+  O : Tường • E : Haki (Người chơi = ĐỎ • Quái xanh)<br>
+  <b>0</b> : Mở khóa chuột • Q : Ẩn/hiện bảng<br>
+  <b style="color:#0ff">MULTI:</b> Đấm/Laser/Chiêu PvP -0.2 HP • Chết hồi sinh gần NPC
 </div>
 <div id="crosshair"></div>
 <div id="hud">
@@ -71,13 +73,14 @@ body{overflow:hidden;background:#000;font-family:Arial,sans-serif;touch-action:n
   <div id="level-text">Cấp: <span id="level">1</span> • EXP: <span id="exp-text">0</span>/<span id="exp-need">100</span></div>
   <div id="exp-bar"><div id="exp-fill"></div></div>
   <div id="dollar">Dollar: <span id="dollar-text">0</span>$</div>
+  <div id="time-phase" style="color:#ffd700;font-weight:bold;margin-top:4px">⏰ Ngày</div>
   <div id="charge">SẤM SÉT: ĐÃ TỤ!</div>
   <div id="form-status">DẠNG: RỒNG KAIDO</div>
   <div id="fruit-status">TRÁI: <span id="fruit-name">Không</span></div>
   <div id="haki-status">HAKI QUAN SÁT: BẬT</div>
   <div id="hero-status">SIÊU ANH HÙNG: <span id="hero-hp">50</span> HP</div>
 </div>
-<div id="status">Đang tải...</div>
+<div id="status">Đang tải đồ họa Blox Style...</div>
 <div id="mode-indicator">CHẾ ĐỘ ĐIỆN THOẠI</div>
 <div id="mp-status">Đang kết nối server...</div>
 <div id="player-list"></div>
@@ -95,6 +98,15 @@ body{overflow:hidden;background:#000;font-family:Arial,sans-serif;touch-action:n
   <div id="shop-list"></div>
   <button id="shop-close">Đóng</button>
 </div>
+
+<div id="boat-shop-ui" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.96);color:#fff;padding:20px;border-radius:16px;z-index:40;width:92%;max-width:520px;max-height:80vh;overflow-y:auto;border:2px solid #00bcd4;box-shadow:0 0 30px rgba(0,188,212,0.3)">
+  <h3 style="text-align:center;color:#00e5ff;margin-bottom:12px">⚓ CỬA HÀNG THUYỀN</h3>
+  <div id="boat-shop-list"></div>
+  <button id="boat-shop-close" style="display:block;margin:16px auto 0;padding:10px 28px;background:#c00;color:#fff;border:none;border-radius:10px;font-weight:bold;cursor:pointer">Đóng</button>
+</div>
+
+<canvas id="minimap" width="180" height="180" style="display:none;position:absolute;top:12px;left:12px;z-index:35;border:2px solid #0ff;border-radius:12px;background:rgba(0,20,40,0.85);box-shadow:0 0 12px rgba(0,255,255,0.4)"></canvas>
+<div id="minimap-label" style="display:none;position:absolute;top:196px;left:12px;z-index:35;color:#0ff;font-size:12px;background:rgba(0,0,0,0.7);padding:3px 10px;border-radius:8px">Bản đồ (phím 2 ẩn)</div>
 
 <div id="mobile-controls">
   <div id="joy-zone"><div id="joy-base"><div id="joy-stick"></div></div></div>
@@ -116,82 +128,165 @@ body{overflow:hidden;background:#000;font-family:Arial,sans-serif;touch-action:n
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
+// ==================== TOON GRADIENT MAP ====================
+function createToonGradient() {
+  const data = new Uint8Array([40,40,40,255, 110,110,110,255, 255,255,255,255]);
+  const tex = new THREE.DataTexture(data, 3, 1, THREE.RGBAFormat);
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  tex.needsUpdate = true;
+  return tex;
+}
+const toonGradient = createToonGradient();
+
+// ==================== SCENE & RENDERER ====================
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87CEEB);
-scene.fog = new THREE.Fog(0x87CEEB, 400, 2800);
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 6000);
+scene.fog = new THREE.FogExp2(0x6aa8d8, 0.00022);
+
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 50000);
 let baseFOV = 70, zoomFactor = 1.0;
-const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:"high-performance"});
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.35;
 document.body.appendChild(renderer.domElement);
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
-scene.add(ambientLight);
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
-dirLight.position.set(80, 150, 60);
-scene.add(dirLight);
 
-const player = new THREE.Group();
-let isGiant = false, isDragon = false, velocityY = 0, onGround = true, isFlying = false, spaceHoldTime = 0;
-const GRAVITY = -0.032, JUMP_FORCE = 0.42;
+// ==================== SKY ====================
+let skyMat, sunMesh, sunGlow;
+function createSky() {
+  const skyGeo = new THREE.SphereGeometry(4500, 32, 24);
+  skyMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide, depthWrite: false,
+    uniforms: {
+      topColor: { value: new THREE.Color(0x1a8cff) },
+      bottomColor: { value: new THREE.Color(0x7ad4ff) },
+      offset: { value: 20 }, exponent: { value: 0.45 }
+    },
+    vertexShader: `varying vec3 vWorldPosition; void main(){ vec4 worldPosition = modelMatrix * vec4(position,1.0); vWorldPosition = worldPosition.xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+    fragmentShader: `uniform vec3 topColor; uniform vec3 bottomColor; uniform float offset; uniform float exponent; varying vec3 vWorldPosition; void main(){ float h = normalize(vWorldPosition + offset).y; float t = max(pow(max(h,0.0),exponent),0.0); gl_FragColor = vec4(mix(bottomColor,topColor,t),1.0); }`
+  });
+  scene.add(new THREE.Mesh(skyGeo, skyMat));
 
-function buildHumanForm() {
-  while(player.children.length) player.remove(player.children[0]);
-  const matRed = new THREE.MeshLambertMaterial({color:0xcc0000});
-  const matBlue = new THREE.MeshLambertMaterial({color:0x0033aa});
-  const matBlack = new THREE.MeshLambertMaterial({color:0x111111});
-  const matWhite = new THREE.MeshBasicMaterial({color:0xffffff});
-  const leftLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.10,0.55,8), matBlue); leftLeg.position.set(-0.12,0.275,0); player.add(leftLeg);
-  const rightLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.10,0.55,8), matBlue); rightLeg.position.set(0.12,0.275,0); player.add(rightLeg);
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.44,0.55,0.28), matRed); torso.position.y = 0.82; player.add(torso);
-  const emblem = new THREE.Mesh(new THREE.CircleGeometry(0.09,8), matBlack); emblem.position.set(0,0.90,0.145); player.add(emblem);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.21,10,10), matRed); head.position.y = 1.28; player.add(head);
-  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.07,8,8), matWhite); eyeL.position.set(-0.09,1.31,0.16); eyeL.scale.set(1,0.7,0.6); player.add(eyeL);
-  const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.07,8,8), matWhite); eyeR.position.set(0.09,1.31,0.16); eyeR.scale.set(1,0.7,0.6); player.add(eyeR);
-  const eyeBorderL = new THREE.Mesh(new THREE.SphereGeometry(0.08,8,8), matBlack); eyeBorderL.position.set(-0.09,1.31,0.155); eyeBorderL.scale.set(1,0.75,0.55); player.add(eyeBorderL);
-  const eyeBorderR = new THREE.Mesh(new THREE.SphereGeometry(0.08,8,8), matBlack); eyeBorderR.position.set(0.09,1.31,0.155); eyeBorderR.scale.set(1,0.75,0.55); player.add(eyeBorderR);
-  const leftArm = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.52,8), matBlue); leftArm.position.set(-0.32,0.85,0); leftArm.rotation.z = 0.25; player.add(leftArm);
-  const rightArm = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.52,8), matBlue); rightArm.position.set(0.32,0.85,0); rightArm.rotation.z = -0.25; player.add(rightArm);
-  const leftHand = new THREE.Mesh(new THREE.SphereGeometry(0.07,6,6), matRed); leftHand.position.set(-0.38,0.58,0); player.add(leftHand);
-  const rightHand = new THREE.Mesh(new THREE.SphereGeometry(0.07,6,6), matRed); rightHand.position.set(0.38,0.58,0); player.add(rightHand);
+  sunMesh = new THREE.Mesh(new THREE.SphereGeometry(80,16,16), new THREE.MeshBasicMaterial({color:0xffee55, fog:false}));
+  sunMesh.position.set(800,1200,-600); scene.add(sunMesh);
+
+  sunGlow = new THREE.Mesh(new THREE.SphereGeometry(220,16,16), new THREE.MeshBasicMaterial({color:0xffdd44, transparent:true, opacity:0.4, fog:false, depthWrite:false, blending:THREE.AdditiveBlending}));
+  sunGlow.position.copy(sunMesh.position); scene.add(sunGlow);
 }
-function buildDragonForm() {
+createSky();
+
+// ==================== LIGHTING ====================
+const hemiLight = new THREE.HemisphereLight(0x88ccee, 0x2a5a0a, 0.38); scene.add(hemiLight);
+const dirLight = new THREE.DirectionalLight(0xfff0c8, 1.45);
+dirLight.position.set(130,240,90); dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(2048,2048);
+dirLight.shadow.camera.near=10; dirLight.shadow.camera.far=600;
+dirLight.shadow.camera.left=dirLight.shadow.camera.bottom=-200;
+dirLight.shadow.camera.right=dirLight.shadow.camera.top=200;
+dirLight.shadow.bias=-0.001; scene.add(dirLight);
+const fillLight = new THREE.DirectionalLight(0x6699ff, 0.28); fillLight.position.set(-80,60,-50); scene.add(fillLight);
+
+// ==================== DAY-NIGHT ====================
+const DAY_PHASES = [
+  {name:'Ngày', duration:600, skyTop:0x1a8cff, skyBot:0x7ad4ff, fog:0x6ab0e0, fogDensity:0.00020, hemi:0.42, dir:1.5, dirColor:0xfff0c8, sunY:1200, sunOpacity:0.4},
+  {name:'Trưa', duration:900, skyTop:0x0099ff, skyBot:0x87e0ff, fog:0x88c8f0, fogDensity:0.00018, hemi:0.48, dir:1.65, dirColor:0xffffff, sunY:1400, sunOpacity:0.45},
+  {name:'Chiều tà', duration:600, skyTop:0xff6b35, skyBot:0xffb347, fog:0xd4804a, fogDensity:0.00028, hemi:0.35, dir:1.1, dirColor:0xff9966, sunY:280, sunOpacity:0.55},
+  {name:'Đêm', duration:900, skyTop:0x0a1628, skyBot:0x1a2a4a, fog:0x0d1a2e, fogDensity:0.00045, hemi:0.12, dir:0.25, dirColor:0x6688cc, sunY:-400, sunOpacity:0.05}
+];
+let dayTime=0, currentPhaseIdx=0;
+const totalDayCycle = DAY_PHASES.reduce((s,p)=>s+p.duration,0);
+
+function lerpColor(c1,c2,t){ return new THREE.Color(c1).lerp(new THREE.Color(c2),t); }
+function updateDayNight(dt){
+  if(isObservationHaki) return;
+  dayTime = (dayTime+dt)%totalDayCycle;
+  let acc=0, phaseIdx=0, localT=0;
+  for(let i=0;i<DAY_PHASES.length;i++){
+    if(dayTime < acc+DAY_PHASES[i].duration){ phaseIdx=i; localT=(dayTime-acc)/DAY_PHASES[i].duration; break; }
+    acc += DAY_PHASES[i].duration;
+  }
+  currentPhaseIdx = phaseIdx;
+  const cur = DAY_PHASES[phaseIdx], next = DAY_PHASES[(phaseIdx+1)%DAY_PHASES.length];
+  const blend = localT>0.8 ? (localT-0.8)/0.2 : 0;
+
+  skyMat.uniforms.topColor.value.copy(lerpColor(cur.skyTop, next.skyTop, blend));
+  skyMat.uniforms.bottomColor.value.copy(lerpColor(cur.skyBot, next.skyBot, blend));
+  scene.fog.color.copy(lerpColor(cur.fog, next.fog, blend));
+  scene.fog.density = cur.fogDensity + (next.fogDensity-cur.fogDensity)*blend;
+  hemiLight.intensity = cur.hemi + (next.hemi-cur.hemi)*blend;
+  dirLight.intensity = cur.dir + (next.dir-cur.dir)*blend;
+  dirLight.color.copy(lerpColor(cur.dirColor, next.dirColor, blend));
+  const sunY = cur.sunY + (next.sunY-cur.sunY)*blend;
+  sunMesh.position.y = sunY; sunGlow.position.y = sunY;
+  sunGlow.material.opacity = cur.sunOpacity + (next.sunOpacity-cur.sunOpacity)*blend;
+  sunMesh.visible = sunGlow.visible = sunY > 50;
+  const el = document.getElementById('time-phase');
+  if(el && el.textContent !== '⏰ '+cur.name) el.textContent = '⏰ '+cur.name;
+}
+
+// ==================== PLAYER ====================
+const player = new THREE.Group();
+let isGiant=false, isDragon=false, velocityY=0, onGround=true, isFlying=false, spaceHoldTime=0;
+const GRAVITY=-0.032, JUMP_FORCE=0.42;
+
+function makeToonMat(color, emissive=0x000000, emissiveIntensity=0.08){
+  return new THREE.MeshToonMaterial({color, gradientMap:toonGradient, emissive:emissive||color, emissiveIntensity});
+}
+
+function buildHumanForm(){
   while(player.children.length) player.remove(player.children[0]);
-  const bodyMat = new THREE.MeshLambertMaterial({color:0x1a4a8a});
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.45,0.55,3.2,8), bodyMat); body.rotation.x = Math.PI/2; body.position.set(0,1.1,-0.9); player.add(body);
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.7,1.1), bodyMat); head.position.set(0,1.4,1.3); player.add(head);
-  const snout = new THREE.Mesh(new THREE.BoxGeometry(0.55,0.4,0.7), bodyMat); snout.position.set(0,1.25,2.0); player.add(snout);
-  const hornMat = new THREE.MeshLambertMaterial({color:0xdddddd});
-  const hornL = new THREE.Mesh(new THREE.ConeGeometry(0.1,0.7,5), hornMat); hornL.position.set(-0.28,1.95,1.1); hornL.rotation.z=0.3; player.add(hornL);
-  const hornR = hornL.clone(); hornR.position.x=0.28; hornR.rotation.z=-0.3; player.add(hornR);
-  const eyeMat = new THREE.MeshBasicMaterial({color:0xff2200});
-  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.1,6,6), eyeMat); eyeL.position.set(-0.28,1.5,1.7); player.add(eyeL);
-  const eyeR = eyeL.clone(); eyeR.position.x=0.28; player.add(eyeR);
-  for(let i=0;i<2;i++){const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.11,0.9,5), bodyMat); leg.position.set((i===0?-0.4:0.4),0.55,0.6); player.add(leg);}
-  for(let i=0;i<2;i++){const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.12,1.0,5), bodyMat); leg.position.set((i===0?-0.45:0.45),0.5,-1.7); player.add(leg);}
-  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.06,2.2,6), bodyMat); tail.rotation.x = Math.PI/2; tail.position.set(0,0.9,-3.2); player.add(tail);
+  const matRed=makeToonMat(0xff1a1a,0xff1a1a,0.12), matBlue=makeToonMat(0x1a4dff,0x1a4dff,0.1);
+  const matBlack=makeToonMat(0x1a1a1a), matWhite=makeToonMat(0xffffff,0xffffff,0.05);
+  const leftLeg=new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.11,0.55,10),matBlue); leftLeg.position.set(-0.13,0.275,0); leftLeg.castShadow=true; player.add(leftLeg);
+  const rightLeg=new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.11,0.55,10),matBlue); rightLeg.position.set(0.13,0.275,0); rightLeg.castShadow=true; player.add(rightLeg);
+  const torso=new THREE.Mesh(new THREE.BoxGeometry(0.48,0.58,0.30),matRed); torso.position.y=0.84; torso.castShadow=true; player.add(torso);
+  const emblem=new THREE.Mesh(new THREE.CircleGeometry(0.10,12),matBlack); emblem.position.set(0,0.92,0.16); player.add(emblem);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.23,12,12),matRed); head.position.y=1.32; head.castShadow=true; player.add(head);
+  const eyeL=new THREE.Mesh(new THREE.SphereGeometry(0.075,8,8),matWhite); eyeL.position.set(-0.09,1.35,0.17); eyeL.scale.set(1,0.7,0.55); player.add(eyeL);
+  const eyeR=eyeL.clone(); eyeR.position.x=0.09; player.add(eyeR);
+  const pupilL=new THREE.Mesh(new THREE.SphereGeometry(0.035,6,6),matBlack); pupilL.position.set(-0.09,1.35,0.21); player.add(pupilL);
+  const pupilR=pupilL.clone(); pupilR.position.x=0.09; player.add(pupilR);
+  const leftArm=new THREE.Mesh(new THREE.CylinderGeometry(0.065,0.065,0.52,8),matBlue); leftArm.position.set(-0.34,0.88,0); leftArm.rotation.z=0.28; leftArm.castShadow=true; player.add(leftArm);
+  const rightArm=new THREE.Mesh(new THREE.CylinderGeometry(0.065,0.065,0.52,8),matBlue); rightArm.position.set(0.34,0.88,0); rightArm.rotation.z=-0.28; rightArm.castShadow=true; player.add(rightArm);
+  const leftHand=new THREE.Mesh(new THREE.SphereGeometry(0.075,8,8),matRed); leftHand.position.set(-0.40,0.60,0); player.add(leftHand);
+  const rightHand=new THREE.Mesh(new THREE.SphereGeometry(0.075,8,8),matRed); rightHand.position.set(0.40,0.60,0); player.add(rightHand);
+}
+
+function buildDragonForm(){
+  while(player.children.length) player.remove(player.children[0]);
+  const bodyMat=makeToonMat(0x1a5aaa,0x003355,0.15);
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.48,0.58,3.3,10),bodyMat); body.rotation.x=Math.PI/2; body.position.set(0,1.15,-0.9); body.castShadow=true; player.add(body);
+  const head=new THREE.Mesh(new THREE.BoxGeometry(0.95,0.75,1.15),bodyMat); head.position.set(0,1.45,1.35); head.castShadow=true; player.add(head);
+  const snout=new THREE.Mesh(new THREE.BoxGeometry(0.58,0.42,0.75),bodyMat); snout.position.set(0,1.3,2.05); player.add(snout);
+  const hornMat=makeToonMat(0xeeeeee);
+  const hornL=new THREE.Mesh(new THREE.ConeGeometry(0.11,0.75,6),hornMat); hornL.position.set(-0.3,2.0,1.15); hornL.rotation.z=0.3; player.add(hornL);
+  const hornR=hornL.clone(); hornR.position.x=0.3; hornR.rotation.z=-0.3; player.add(hornR);
+  const eyeMat=new THREE.MeshBasicMaterial({color:0xff2200});
+  const eyeL=new THREE.Mesh(new THREE.SphereGeometry(0.11,8,8),eyeMat); eyeL.position.set(-0.3,1.55,1.75); player.add(eyeL);
+  const eyeR=eyeL.clone(); eyeR.position.x=0.3; player.add(eyeR);
+  for(let i=0;i<2;i++){ const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.12,0.95,6),bodyMat); leg.position.set(i===0?-0.42:0.42,0.58,0.65); leg.castShadow=true; player.add(leg); }
+  for(let i=0;i<2;i++){ const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.13,1.05,6),bodyMat); leg.position.set(i===0?-0.48:0.48,0.52,-1.75); leg.castShadow=true; player.add(leg); }
+  const tail=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.07,2.3,7),bodyMat); tail.rotation.x=Math.PI/2; tail.position.set(0,0.95,-3.3); player.add(tail);
 }
 buildHumanForm();
-player.position.set(0, 0, 25);
-scene.add(player);
+player.position.set(20,8,40); scene.add(player);
 
 // ==================== MULTIPLAYER ====================
-let isObservationHaki = false; // early declare for multiplayer + Haki
-const otherPlayers = {}; // id -> { mesh, data, nameTag }
-let socket = null;
-let myId = null;
-let isConnected = false;
-const SERVER_URL = window.location.origin; // when served by the Node server
-// For local test you can force: const SERVER_URL = 'http://localhost:3000';
+let isObservationHaki = false;
+const otherPlayers = {};
+let socket = null, myId = null, isConnected = false;
+const SERVER_URL = window.location.origin;
 
 function createOtherPlayerMesh(data) {
   const group = new THREE.Group();
-  // Simple human form (red-tinted for visibility)
   const matBody = new THREE.MeshLambertMaterial({ color: 0xcc2222 });
   const matBlue = new THREE.MeshLambertMaterial({ color: 0x2244aa });
   const matSkin = new THREE.MeshLambertMaterial({ color: 0xffdbac });
   const matWhite = new THREE.MeshBasicMaterial({ color: 0xffffff });
-
   const leftLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.10,0.55,8), matBlue);
   leftLeg.position.set(-0.12,0.275,0); group.add(leftLeg);
   const rightLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.10,0.55,8), matBlue);
@@ -208,7 +303,6 @@ function createOtherPlayerMesh(data) {
   leftArm.position.set(-0.32,0.85,0); leftArm.rotation.z = 0.25; group.add(leftArm);
   const rightArm = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.52,8), matBlue);
   rightArm.position.set(0.32,0.85,0); rightArm.rotation.z = -0.25; group.add(rightArm);
-
   group.userData = { isOtherPlayer: true, playerId: data.id };
   return group;
 }
@@ -219,17 +313,9 @@ function addOtherPlayer(data) {
   mesh.position.set(data.x || 0, data.y || 0, data.z || 0);
   mesh.rotation.y = data.rotY || 0;
   if (data.isGiant) mesh.scale.set(10,10,10);
-  else if (data.isDragon) mesh.scale.set(1.5,1.5,1.5);
+  else if (data.isDragon) mesh.scale.set(1.8,1.8,1.8);
   scene.add(mesh);
-
-  // Name tag (CSS2D would be better, but simple HTML overlay for simplicity)
-  const nameDiv = document.createElement('div');
-  nameDiv.className = 'name-tag';
-  nameDiv.textContent = data.name || data.id.slice(0,6);
-  nameDiv.style.display = 'none'; // we update in render loop via projection if needed
-  document.body.appendChild(nameDiv);
-
-  otherPlayers[data.id] = { mesh, data: {...data}, nameTag: nameDiv };
+  otherPlayers[data.id] = { mesh, data: {...data} };
   updatePlayerListUI();
 }
 
@@ -237,29 +323,19 @@ function removeOtherPlayer(id) {
   const op = otherPlayers[id];
   if (!op) return;
   scene.remove(op.mesh);
-  if (op.nameTag && op.nameTag.parentNode) op.nameTag.parentNode.removeChild(op.nameTag);
   delete otherPlayers[id];
   updatePlayerListUI();
 }
 
 function updateOtherPlayer(data) {
   const op = otherPlayers[data.id];
-  if (!op) {
-    addOtherPlayer(data);
-    return;
-  }
+  if (!op) { addOtherPlayer(data); return; }
   op.data = { ...op.data, ...data };
-  // Smooth-ish move
-  op.mesh.position.x = data.x;
-  op.mesh.position.y = data.y;
-  op.mesh.position.z = data.z;
+  op.mesh.position.set(data.x, data.y, data.z);
   op.mesh.rotation.y = data.rotY || 0;
-
   if (data.isGiant) op.mesh.scale.set(10,10,10);
   else if (data.isDragon) op.mesh.scale.set(1.8,1.8,1.8);
   else op.mesh.scale.set(1,1,1);
-
-  // Haki visual: when LOCAL player has haki ON, other players turn RED
   applyHakiColorToOther(op);
 }
 
@@ -267,10 +343,7 @@ function applyHakiColorToOther(op) {
   const targetColor = isObservationHaki ? 0xff2222 : 0xcc2222;
   op.mesh.traverse(c => {
     if (c.isMesh && c.material && c.material.color) {
-      // Keep eyes white-ish, body red when haki
-      if (c.geometry && c.geometry.type === 'SphereGeometry' && c.position.y > 1.2) {
-        // head / eyes - leave skin or white
-      } else {
+      if (!(c.geometry && c.geometry.type === 'SphereGeometry' && c.position.y > 1.2)) {
         c.material.color.setHex(targetColor);
       }
     }
@@ -278,9 +351,7 @@ function applyHakiColorToOther(op) {
 }
 
 function updateAllOthersHakiColor() {
-  for (const id in otherPlayers) {
-    applyHakiColorToOther(otherPlayers[id]);
-  }
+  for (const id in otherPlayers) applyHakiColorToOther(otherPlayers[id]);
 }
 
 function updatePlayerListUI() {
@@ -291,7 +362,7 @@ function updatePlayerListUI() {
   html += `Tổng: ${count}<br>`;
   for (const id in otherPlayers) {
     const d = otherPlayers[id].data;
-    html += `${d.name || id.slice(0,5)} • HP ${Math.floor(d.hp||15)}/${Math.floor(d.maxHp||15)}<br>`;
+    html += `${(d.name||id.slice(0,5))} • HP ${Math.floor(d.hp||15)}/${Math.floor(d.maxHp||15)}<br>`;
   }
   el.innerHTML = html;
 }
@@ -313,9 +384,7 @@ function connectMultiplayer() {
       document.getElementById('mp-status').style.color = '#f55';
     });
     socket.on('currentPlayers', (all) => {
-      for (const id in all) {
-        if (id !== myId) addOtherPlayer(all[id]);
-      }
+      for (const id in all) if (id !== myId) addOtherPlayer(all[id]);
     });
     socket.on('playerJoined', (data) => {
       if (data.id !== myId) {
@@ -332,14 +401,10 @@ function connectMultiplayer() {
     });
     socket.on('playerDamaged', (data) => {
       if (data.targetId === myId) {
-        // We got hit
         playerHP = data.newHp;
         updateHP();
         document.getElementById('status').textContent = `Bị đánh! -${data.damage} HP`;
-        if (playerHP <= 0) {
-          // Local death handling also triggers respawn
-          respawnNearNPC();
-        }
+        if (playerHP <= 0) respawnNearNPC();
       } else if (otherPlayers[data.targetId]) {
         otherPlayers[data.targetId].data.hp = data.newHp;
         updatePlayerListUI();
@@ -365,42 +430,32 @@ function connectMultiplayer() {
       }
     });
   } catch (e) {
-    console.error('Multiplayer connect error', e);
-    document.getElementById('mp-status').textContent = '⚠️ Chạy offline (không có server)';
+    console.error(e);
+    document.getElementById('mp-status').textContent = '⚠️ Chạy offline';
   }
 }
 
 function sendPlayerUpdate() {
   if (!socket || !isConnected) return;
   socket.emit('playerUpdate', {
-    x: player.position.x,
-    y: player.position.y,
-    z: player.position.z,
+    x: player.position.x, y: player.position.y, z: player.position.z,
     rotY: player.rotation.y,
-    isGiant,
-    isDragon,
-    isFlying,
+    isGiant, isDragon, isFlying,
     haki: isObservationHaki,
-    fruit: activeFruit ? activeFruit.id : null,
-    fruitAwakened,
-    hp: playerHP,
-    maxHp: playerMaxHP,
-    level: playerLevel
+    fruit: (typeof activeFruit !== 'undefined' && activeFruit) ? activeFruit.id : null,
+    fruitAwakened: typeof fruitAwakened !== 'undefined' ? fruitAwakened : false,
+    hp: playerHP, maxHp: playerMaxHP, level: playerLevel
   });
 }
 
-function tryDamageOtherPlayers(origin, dir, range, dmgAmount = 0.2) {
+function tryDamageOtherPlayers(origin, dir, range) {
   if (!isConnected) return;
   for (const id in otherPlayers) {
     const op = otherPlayers[id];
     const toOther = op.mesh.position.clone().sub(origin);
     const dist = toOther.length();
-    if (dist < range + (op.data.isGiant ? 5 : 1.2)) {
-      // Check roughly facing
-      if (dir && toOther.normalize().dot(dir) > 0.55) {
-        socket.emit('dealDamage', { targetId: id });
-      } else if (!dir) {
-        // Area damage
+    if (dist < range + (op.data.isGiant ? 5 : 1.5)) {
+      if (!dir || toOther.normalize().dot(dir) > 0.5) {
         socket.emit('dealDamage', { targetId: id });
       }
     }
@@ -408,104 +463,171 @@ function tryDamageOtherPlayers(origin, dir, range, dmgAmount = 0.2) {
 }
 
 function respawnNearNPC() {
-  player.position.set(
-    (Math.random() - 0.5) * 3,
-    0,
-    (Math.random() - 0.5) * 3
-  );
+  // Ưu tiên NPC bán trái, fallback vị trí mặc định
+  let sx = 20, sy = 8, sz = 40;
+  if (typeof fruitNPCs !== 'undefined' && fruitNPCs.length > 0) {
+    const npc = fruitNPCs[0];
+    sx = npc.position.x + 3;
+    sy = (typeof LAND_SURFACE !== 'undefined' ? LAND_SURFACE : 6) + 2;
+    sz = npc.position.z;
+  }
+  player.position.set(sx, sy, sz);
   playerHP = playerMaxHP;
-  isGiant = false;
-  isDragon = false;
-  isFlying = false;
-  fruitAwakened = false;
-  if (auraMesh) { scene.remove(auraMesh); auraMesh = null; }
+  isGiant = false; isDragon = false; isFlying = false;
+  if (typeof fruitAwakened !== 'undefined') fruitAwakened = false;
+  if (typeof auraMesh !== 'undefined' && auraMesh) { scene.remove(auraMesh); auraMesh = null; }
   player.scale.set(1,1,1);
   buildHumanForm();
   velocityY = 0;
   updateHP();
   document.getElementById('status').textContent = 'Bạn đã bị hạ! Hồi sinh gần NPC';
-  // Also notify server if connected (server already handles from damage)
-  if (socket && isConnected) {
-    sendPlayerUpdate();
+  if (socket && isConnected) sendPlayerUpdate();
+}
+
+setTimeout(connectMultiplayer, 1000);
+
+// ==================== WORLD ====================
+const buildings=[], cars=[], people=[], effects=[], lightnings=[], earthWalls=[], destroyedBuildings=[];
+let currentHero=null;
+const islands=[], harborNPCs=[], fruitNPCs=[], colliders=[], monsters=[], walkPlatforms=[];
+const ISLAND_R=1000, ISLAND_GAP=1000, CENTER_DIST=ISLAND_R*2+ISLAND_GAP;
+const LAND_SURFACE=6, LAND_THICK=6, WATER_Y=0, SWIM_FEET_Y=-0.65;
+
+const waterGeo=new THREE.PlaneGeometry(40000,40000,64,64);
+const water=new THREE.Mesh(waterGeo, new THREE.MeshPhongMaterial({color:0x0d6ea3, transparent:true, opacity:0.88, shininess:140, specular:0x66ccff, emissive:0x033355, emissiveIntensity:0.15}));
+water.rotation.x=-Math.PI/2; water.position.y=0; water.receiveShadow=true; scene.add(water);
+const water2=new THREE.Mesh(new THREE.PlaneGeometry(40000,40000,32,32), new THREE.MeshPhongMaterial({color:0x1a9fd4, transparent:true, opacity:0.25, shininess:200, specular:0xaaddff, depthWrite:false}));
+water2.rotation.x=-Math.PI/2; water2.position.y=0.15; scene.add(water2);
+const waterPos=waterGeo.attributes.position;
+for(let i=0;i<waterPos.count;i++) waterPos.setY(i, Math.sin(i*0.15)*0.8);
+waterGeo.computeVertexNormals();
+
+const ISLAND_DEFS = [
+  {id:0,name:'Đảo Thành Phố',theme:'city',color:0x3a9c4a,px:0,pz:0},
+  {id:1,name:'Đảo Rừng',theme:'forest',color:0x1a6b2a,px:CENTER_DIST,pz:0},
+  {id:2,name:'Đảo Kẹo',theme:'candy',color:0xff69b4,px:CENTER_DIST*0.75,pz:CENTER_DIST*0.75},
+  {id:3,name:'Đảo Đầu Lâu',theme:'kaido',color:0x5a4a3a,px:0,pz:CENTER_DIST},
+  {id:4,name:'Đảo Nhà Tù',theme:'prison',color:0x555566,px:-CENTER_DIST*0.75,pz:CENTER_DIST*0.75},
+  {id:5,name:'Đảo Sa Mạc',theme:'desert',color:0xe8c96a,px:-CENTER_DIST,pz:0},
+  {id:6,name:'Đảo Băng',theme:'ice',color:0xaadfff,px:-CENTER_DIST*0.75,pz:-CENTER_DIST*0.75},
+  {id:7,name:'Đảo Núi Lửa',theme:'volcano',color:0x8b2500,px:0,pz:-CENTER_DIST},
+  {id:8,name:'Đảo Hải Quân',theme:'marine',color:0x4a7ab0,px:CENTER_DIST*0.75,pz:-CENTER_DIST*0.75},
+  {id:9,name:'Đảo Ma',theme:'ghost',color:0x3a2a5a,px:CENTER_DIST*1.3,pz:CENTER_DIST*0.4}
+];
+
+function addCollider(wx,wz,r){ colliders.push({x:wx,z:wz,r}); }
+
+function createIsland(def){
+  const group=new THREE.Group(); group.position.set(def.px,0,def.pz); const R=ISLAND_R;
+  const land=new THREE.Mesh(new THREE.CylinderGeometry(R,R+30,LAND_THICK,64), makeToonMat(def.color));
+  land.position.y=LAND_SURFACE-LAND_THICK/2; land.receiveShadow=land.castShadow=true; group.add(land);
+  const shore=new THREE.Mesh(new THREE.CylinderGeometry(R+40,R+70,2.5,48), makeToonMat(0xe8d4a0)); shore.position.y=1.2; group.add(shore);
+
+  if(def.theme==='city'){
+    for(let i=0;i<55;i++){
+      const ang=Math.random()*Math.PI*2, r=40+Math.random()*(R-80), h=12+Math.random()*45, bw=6+Math.random()*10;
+      const b=new THREE.Mesh(new THREE.BoxGeometry(bw,h,bw), makeToonMat([0x4a90d9,0xe8b84a,0x748ffc,0xe03131,0x2f9e44][i%5]));
+      b.position.set(Math.cos(ang)*r, LAND_SURFACE+h/2, Math.sin(ang)*r); b.castShadow=true; group.add(b);
+      addCollider(def.px+Math.cos(ang)*r, def.pz+Math.sin(ang)*r, bw*0.7);
+    }
+  } else if(def.theme==='forest'){
+    for(let i=0;i<90;i++){
+      const ang=Math.random()*Math.PI*2, r=30+Math.random()*(R-60), th=6+Math.random()*8;
+      const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1.1,th,6), makeToonMat(0x5c3a1e)); trunk.position.set(Math.cos(ang)*r,LAND_SURFACE+th/2,Math.sin(ang)*r);
+      const leaves=new THREE.Mesh(new THREE.SphereGeometry(3.5+Math.random()*2,8,8), makeToonMat(0x228b22)); leaves.position.set(Math.cos(ang)*r,LAND_SURFACE+th+2,Math.sin(ang)*r);
+      group.add(trunk); group.add(leaves); addCollider(def.px+Math.cos(ang)*r, def.pz+Math.sin(ang)*r, 2.5);
+    }
+  } else if(def.theme==='candy'){
+    for(let i=0;i<50;i++){
+      const ang=Math.random()*Math.PI*2, r=40+Math.random()*(R-70), sz=3+Math.random()*5;
+      const candy=new THREE.Mesh(new THREE.SphereGeometry(sz,10,10), makeToonMat([0xff69b4,0x00e5ff,0xffeb3b,0xff1744,0xaa66ff][i%5]));
+      candy.position.set(Math.cos(ang)*r, LAND_SURFACE+sz, Math.sin(ang)*r); group.add(candy);
+      addCollider(def.px+Math.cos(ang)*r, def.pz+Math.sin(ang)*r, sz);
+    }
+  } else if(def.theme==='kaido'){
+    const skull=new THREE.Mesh(new THREE.SphereGeometry(80,16,16), makeToonMat(0xe8e0d0)); skull.position.set(0,LAND_SURFACE+70,0); group.add(skull); addCollider(def.px,def.pz,85);
+    const eyeL=new THREE.Mesh(new THREE.SphereGeometry(14,8,8), new THREE.MeshBasicMaterial({color:0x111111})); eyeL.position.set(-28,LAND_SURFACE+85,55); group.add(eyeL);
+    const eyeR=eyeL.clone(); eyeR.position.x=28; group.add(eyeR);
+    for(let i=0;i<12;i++){ const ang=(i/12)*Math.PI*2; const horn=new THREE.Mesh(new THREE.ConeGeometry(6,30,6), makeToonMat(0xcccccc)); horn.position.set(Math.cos(ang)*100,LAND_SURFACE+25,Math.sin(ang)*100); group.add(horn); addCollider(def.px+Math.cos(ang)*100,def.pz+Math.sin(ang)*100,8); }
+  } else if(def.theme==='prison'){
+    for(let i=0;i<20;i++){ const wall=new THREE.Mesh(new THREE.BoxGeometry(30,28,8), makeToonMat(0x555566)); const ang=(i/20)*Math.PI*2, wr=200; wall.position.set(Math.cos(ang)*wr,LAND_SURFACE+14,Math.sin(ang)*wr); wall.lookAt(0,LAND_SURFACE+14,0); group.add(wall); addCollider(def.px+Math.cos(ang)*wr,def.pz+Math.sin(ang)*wr,16); }
+    const tower=new THREE.Mesh(new THREE.CylinderGeometry(25,30,90,12), makeToonMat(0x444455)); tower.position.y=LAND_SURFACE+45; group.add(tower); addCollider(def.px,def.pz,32);
+  } else if(def.theme==='desert'){
+    for(let i=0;i<40;i++){ const ang=Math.random()*Math.PI*2, r=50+Math.random()*(R-100); const cactus=new THREE.Mesh(new THREE.CylinderGeometry(2,2.5,10+Math.random()*12,6), makeToonMat(0x2e8b2e)); cactus.position.set(Math.cos(ang)*r,LAND_SURFACE+8,Math.sin(ang)*r); group.add(cactus); addCollider(def.px+Math.cos(ang)*r,def.pz+Math.sin(ang)*r,3); }
+  } else if(def.theme==='ice'){
+    for(let i=0;i<45;i++){ const ang=Math.random()*Math.PI*2, r=40+Math.random()*(R-80); const spike=new THREE.Mesh(new THREE.ConeGeometry(4,15+Math.random()*25,6), makeToonMat(0xccf0ff)); spike.position.set(Math.cos(ang)*r,LAND_SURFACE+12,Math.sin(ang)*r); group.add(spike); addCollider(def.px+Math.cos(ang)*r,def.pz+Math.sin(ang)*r,5); }
+  } else if(def.theme==='volcano'){
+    const cone=new THREE.Mesh(new THREE.ConeGeometry(180,160,20), makeToonMat(0x5a2a1a)); cone.position.y=LAND_SURFACE+80; group.add(cone); addCollider(def.px,def.pz,120);
+    const lava=new THREE.Mesh(new THREE.CircleGeometry(40,20), new THREE.MeshBasicMaterial({color:0xff4400})); lava.rotation.x=-Math.PI/2; lava.position.y=LAND_SURFACE+155; group.add(lava);
+  } else if(def.theme==='marine'){
+    for(let i=0;i<35;i++){ const b=new THREE.Mesh(new THREE.BoxGeometry(10,14+Math.random()*20,10), makeToonMat(0x1a4a8a)); const ang=Math.random()*Math.PI*2, r=50+Math.random()*(R-120); b.position.set(Math.cos(ang)*r,LAND_SURFACE+12,Math.sin(ang)*r); group.add(b); addCollider(def.px+Math.cos(ang)*r,def.pz+Math.sin(ang)*r,7); }
+    const flag=new THREE.Mesh(new THREE.BoxGeometry(1,40,1), makeToonMat(0xffffff)); flag.position.set(0,LAND_SURFACE+25,0); group.add(flag);
+  } else if(def.theme==='ghost'){
+    for(let i=0;i<40;i++){ const grave=new THREE.Mesh(new THREE.BoxGeometry(4,8,1.2), makeToonMat(0x888888)); const ang=Math.random()*Math.PI*2, r=40+Math.random()*(R-90); grave.position.set(Math.cos(ang)*r,LAND_SURFACE+5,Math.sin(ang)*r); group.add(grave); addCollider(def.px+Math.cos(ang)*r,def.pz+Math.sin(ang)*r,3); }
   }
+
+  const pierDir=new THREE.Vector3(def.px||0.01,0,def.pz||1).normalize();
+  const pierLen=80, pierDeckH=2.8;
+  const pier=new THREE.Mesh(new THREE.BoxGeometry(18,1.6,pierLen), makeToonMat(0x8B5A2B));
+  const pierLocalX=-pierDir.x*(R+pierLen*0.25), pierLocalZ=-pierDir.z*(R+pierLen*0.25);
+  pier.position.set(pierLocalX, pierDeckH-0.8, pierLocalZ);
+  pier.lookAt(pier.position.x-pierDir.x*20, pier.position.y, pier.position.z-pierDir.z*20); group.add(pier);
+  walkPlatforms.push({x:def.px+pierLocalX, z:def.pz+pierLocalZ, r:pierLen*0.55, h:pierDeckH});
+
+  const npcG=new THREE.Group();
+  const npcBody=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.24,0.75,10), makeToonMat(0x1a5f7a)); npcBody.position.y=0.88; npcG.add(npcBody);
+  const npcHead=new THREE.Mesh(new THREE.SphereGeometry(0.24,10,10), makeToonMat(0xffdbac)); npcHead.position.y=1.45; npcG.add(npcHead);
+  const npcHat=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.14,10), makeToonMat(0xffd700)); npcHat.position.y=1.68; npcG.add(npcHat);
+  npcG.position.set(pierLocalX+pierDir.x*8, pierDeckH, pierLocalZ+pierDir.z*8); group.add(npcG);
+  harborNPCs.push({mesh:npcG, islandId:def.id, islandName:def.name, position:new THREE.Vector3(def.px+npcG.position.x, pierDeckH, def.pz+npcG.position.z), type:'boat'});
+
+  // NPC trái
+  const fruitNpc=new THREE.Group();
+  const fb=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.24,0.75,10), makeToonMat(0x6b2d8b)); fb.position.y=0.88; fruitNpc.add(fb);
+  const fh=new THREE.Mesh(new THREE.SphereGeometry(0.24,10,10), makeToonMat(0xffdbac)); fh.position.y=1.45; fruitNpc.add(fh);
+  const fhat=new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.28,0.14,10), makeToonMat(0xff69b4)); fhat.position.y=1.68; fruitNpc.add(fhat);
+  const decor=new THREE.Mesh(new THREE.SphereGeometry(0.2,8,8), new THREE.MeshBasicMaterial({color:0x00ff88})); decor.position.set(0.35,1.1,0.2); fruitNpc.add(decor);
+  fruitNpc.position.set(40, LAND_SURFACE+1, 30); group.add(fruitNpc);
+  fruitNPCs.push({mesh:fruitNpc, islandId:def.id, islandName:def.name, position:new THREE.Vector3(def.px+40, LAND_SURFACE+1, def.pz+30), type:'fruit'});
+
+  const mobCount=38+Math.floor(Math.random()*12);
+  for(let m=0;m<mobCount;m++){
+    const ang=Math.random()*Math.PI*2, r=80+Math.random()*(R-150);
+    const mx=def.px+Math.cos(ang)*r, mz=def.pz+Math.sin(ang)*r;
+    const mob=new THREE.Group();
+    const bodyCol=[0x88aa44,0xaa6644,0x6688aa,0xaa4488,0xcc8844,0x66aa88][m%6];
+    const body=new THREE.Mesh(new THREE.SphereGeometry(1.1,10,10), makeToonMat(bodyCol)); body.position.y=1.3; body.castShadow=true; mob.add(body);
+    const eye1=new THREE.Mesh(new THREE.SphereGeometry(0.2,6,6), new THREE.MeshBasicMaterial({color:0xff0000})); eye1.position.set(-0.35,1.5,0.85); mob.add(eye1);
+    const eye2=eye1.clone(); eye2.position.x=0.35; mob.add(eye2);
+    mob.position.set(mx, LAND_SURFACE+1, mz); scene.add(mob);
+    monsters.push({mesh:mob, hp:35, maxHp:35, alive:true, islandId:def.id, homeX:mx, homeZ:mz, speed:0.05+Math.random()*0.04, attackTimer:0, respawnTimer:0, hakiGlow:false, origMats:null});
+  }
+
+  scene.add(group);
+  islands.push({id:def.id, name:def.name, theme:def.theme, x:def.px, z:def.pz, radius:ISLAND_R, color:def.color, group});
 }
+ISLAND_DEFS.forEach(createIsland);
+player.position.set(20, LAND_SURFACE+2, 40);
 
-// Connect after a short delay so page is ready
-setTimeout(connectMultiplayer, 800);
-
-// ==================== END MULTIPLAYER ====================
-
-const buildings = [], cars = [], people = [], effects = [], lightnings = [], earthWalls = [];
-const destroyedBuildings = [];
-let currentHero = null;
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(6000,6000), new THREE.MeshLambertMaterial({color:0x2d6b1f}));
-ground.rotation.x = -Math.PI/2; scene.add(ground);
-function createRoad(x,z,w,h){const road = new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshLambertMaterial({color:0x333333})); road.rotation.x = -Math.PI/2; road.position.set(x,0.02,z); scene.add(road);}
-createRoad(0,0,28,4000); createRoad(0,0,4000,28); createRoad(80,0,16,2500); createRoad(-80,0,16,2500); createRoad(0,100,2500,16); createRoad(0,-100,2500,16);
-const bCols = [0x555555,0x666666,0x444444,0x777777,0x5a4a3a];
-for(let i=0;i<150;i++){
-  const w=6+Math.random()*14, h=10+Math.random()*40, d=6+Math.random()*14;
-  const group = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), new THREE.MeshLambertMaterial({color:bCols[Math.floor(Math.random()*bCols.length)]}));
-  body.position.y = h/2; group.add(body);
-  let px,pz;
-  if(i<100){do{px=(Math.random()-0.5)*850;pz=(Math.random()-0.5)*850;}while(Math.abs(px)<35||Math.abs(pz)<35);}
-  else{px=(Math.random()-0.5)*2000; pz=(Math.random()-0.5)*2000;}
-  group.position.set(px,0,pz);
-  group.userData = {health:100+Math.random()*50, body, type:'building', origW:w,origH:h,origD:d, origColor:body.material.color.getHex(), halfW:w/2, halfD:d/2, height:h};
-  scene.add(group); buildings.push(group);
-}
-const carCols = [0xff2222,0x2244ff,0xffffff,0x222222,0xffaa00,0x00aa55];
-for(let i=0;i<30;i++){
-  const car = new THREE.Group();
-  const col = carCols[Math.floor(Math.random()*carCols.length)];
-  const body = new THREE.Mesh(new THREE.BoxGeometry(1.9,0.5,3.6), new THREE.MeshLambertMaterial({color:col})); body.position.y=0.35; car.add(body);
-  const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.6,0.45,1.7), new THREE.MeshLambertMaterial({color:0x99bbcc})); cabin.position.set(0,0.75,-0.15); car.add(cabin);
-  const onVert = Math.random()>0.5;
-  if(onVert){car.position.set((Math.random()-0.5)*18,0,(Math.random()-0.5)*1200); car.rotation.y=Math.random()>0.5?0:Math.PI;}
-  else{car.position.set((Math.random()-0.5)*1200,0,(Math.random()-0.5)*18); car.rotation.y=Math.random()>0.5?Math.PI/2:-Math.PI/2;}
-  car.userData = {speed:0.11+Math.random()*0.13, dir:car.rotation.y, alive:true, type:'car'};
-  scene.add(car); cars.push(car);
-}
-for(let i=0;i<45;i++){
-  const p = new THREE.Group();
-  const cloth = [0x2244aa,0xaa2222,0x22aa44,0xaa44aa,0x444444][Math.floor(Math.random()*5)];
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.19,0.55,6), new THREE.MeshLambertMaterial({color:cloth})); body.position.y=0.70; p.add(body);
-  const hd = new THREE.Mesh(new THREE.SphereGeometry(0.15,6,6), new THREE.MeshLambertMaterial({color:0xffdbac})); hd.position.y=1.15; p.add(hd);
-  p.position.set((Math.random()-0.5)*800,0,(Math.random()-0.5)*800);
-  p.userData = {speed:0.028+Math.random()*0.03, angle:Math.random()*Math.PI*2, change:50+Math.random()*80, alive:true, type:'person'};
-  scene.add(p); people.push(p);
-}
-
-const npc = new THREE.Group();
-const npcBody = new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.22,0.7,8), new THREE.MeshLambertMaterial({color:0x8B4513})); npcBody.position.y = 0.85; npc.add(npcBody);
-const npcHead = new THREE.Mesh(new THREE.SphereGeometry(0.22,8,8), new THREE.MeshLambertMaterial({color:0xffdbac})); npcHead.position.y = 1.4; npc.add(npcHead);
-const npcHat = new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.25,0.15,8), new THREE.MeshLambertMaterial({color:0xffd700})); npcHat.position.y = 1.6; npc.add(npcHat);
-npc.position.set(0, 0, 0); scene.add(npc);
-
-let playerLevel = 1, playerExp = 0, playerMaxHP = 15, playerHP = 15, damageMult = 1.0, destroyMult = 1.0;
-function getExpNeed(lv){ return Math.floor(80 + lv * 45 + lv * lv * 8); }
+// ==================== GAME STATE ====================
+let playerLevel=1, playerExp=0, playerMaxHP=15, playerHP=15, damageMult=1.0, destroyMult=1.0;
+function getExpNeed(lv){ return Math.floor(80+lv*45+lv*lv*8); }
 function addExp(amount){
-  playerExp += amount;
-  let need = getExpNeed(playerLevel);
-  while(playerExp >= need){
-    playerExp -= need; playerLevel++; playerMaxHP += 2.5; playerHP = Math.min(playerMaxHP, playerHP + 2.5);
-    damageMult += 0.08; destroyMult += 0.06; need = getExpNeed(playerLevel);
-    document.getElementById('status').textContent = `🎉 LÊN CẤP ${playerLevel}!`;
-  }
+  playerExp+=amount; let need=getExpNeed(playerLevel);
+  while(playerExp>=need){ playerExp-=need; playerLevel++; playerMaxHP+=2.5; playerHP=Math.min(playerMaxHP,playerHP+2.5); damageMult+=0.08; destroyMult+=0.06; need=getExpNeed(playerLevel); document.getElementById('status').textContent=`🎉 LÊN CẤP ${playerLevel}!`; }
   updateLevelUI(); updateHP();
 }
 function updateLevelUI(){
-  document.getElementById('level').textContent = playerLevel;
-  document.getElementById('exp-text').textContent = Math.floor(playerExp);
-  const need = getExpNeed(playerLevel);
-  document.getElementById('exp-need').textContent = need;
-  document.getElementById('exp-fill').style.width = (playerExp / need * 100) + '%';
-  document.getElementById('maxhp-text').textContent = playerMaxHP.toFixed(1);
+  document.getElementById('level').textContent=playerLevel;
+  document.getElementById('exp-text').textContent=Math.floor(playerExp);
+  const need=getExpNeed(playerLevel);
+  document.getElementById('exp-need').textContent=need;
+  document.getElementById('exp-fill').style.width=(playerExp/need*100)+'%';
+  document.getElementById('maxhp-text').textContent=playerMaxHP.toFixed(1);
 }
 
-let dollars = 0, heldFruit = null, activeFruit = null, fruitAwakened = false, fruitModel = null, auraMesh = null;
-const FRUIT_LIST = [
+let dollars=0, heldFruit=null, activeFruit=null, fruitAwakened=false, fruitModel=null, auraMesh=null;
+const FRUIT_LIST=[
   {id:'rubber',name:'Cao Su',type:'Paramecia',color:0xff69b4,shape:'ball',power:2,price:15,rarity:'Thường'},
   {id:'ice',name:'Băng',type:'Logia',color:0x88ddff,shape:'crystal',power:3,price:25,rarity:'Hiếm'},
   {id:'fire',name:'Lửa',type:'Logia',color:0xff4400,shape:'flame',power:4,price:40,rarity:'Hiếm'},
@@ -535,582 +657,542 @@ const FRUIT_LIST = [
 FRUIT_LIST.sort((a,b)=>a.power-b.power);
 
 function createFruitModel(fruit){
-  const g = new THREE.Group();
-  if(fruit.shape==='star') g.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.35,0), new THREE.MeshBasicMaterial({color:fruit.color})));
-  else if(fruit.shape==='crystal') g.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.32,0), new THREE.MeshBasicMaterial({color:fruit.color})));
-  else if(fruit.shape==='flame') g.add(new THREE.Mesh(new THREE.ConeGeometry(0.25,0.55,6), new THREE.MeshBasicMaterial({color:fruit.color})));
-  else g.add(new THREE.Mesh(new THREE.SphereGeometry(0.3,8,8), new THREE.MeshBasicMaterial({color:fruit.color})));
-  return g;
+  const g=new THREE.Group(); let mesh;
+  if(fruit.shape==='star') mesh=new THREE.Mesh(new THREE.OctahedronGeometry(0.38,0), new THREE.MeshBasicMaterial({color:fruit.color}));
+  else if(fruit.shape==='crystal') mesh=new THREE.Mesh(new THREE.OctahedronGeometry(0.35,0), new THREE.MeshBasicMaterial({color:fruit.color}));
+  else if(fruit.shape==='flame') mesh=new THREE.Mesh(new THREE.ConeGeometry(0.28,0.6,7), new THREE.MeshBasicMaterial({color:fruit.color}));
+  else mesh=new THREE.Mesh(new THREE.SphereGeometry(0.32,10,10), new THREE.MeshBasicMaterial({color:fruit.color}));
+  g.add(mesh);
+  const glow=new THREE.Mesh(mesh.geometry.clone(), new THREE.MeshBasicMaterial({color:fruit.color, transparent:true, opacity:0.25, side:THREE.BackSide}));
+  glow.scale.multiplyScalar(1.4); g.add(glow); return g;
 }
+
 function giveRandomFruit(){
-  if(dollars<1){document.getElementById('status').textContent='Không đủ 1 Dollar!';return;}
+  if(dollars<1){ document.getElementById('status').textContent='Không đủ 1 Dollar!'; return; }
   dollars-=1; updateDollar();
-  const weights = FRUIT_LIST.map(f=>Math.max(1,12-f.power*1.4));
-  const total = weights.reduce((a,b)=>a+b,0);
-  let r = Math.random()*total, fruit = FRUIT_LIST[0];
-  for(let i=0;i<FRUIT_LIST.length;i++){r-=weights[i]; if(r<=0){fruit=FRUIT_LIST[i];break;}}
-  heldFruit = fruit;
-  if(fruitModel) scene.remove(fruitModel);
-  fruitModel = createFruitModel(fruit);
-  fruitModel.position.copy(player.position); fruitModel.position.y+=2.2; scene.add(fruitModel);
+  const weights=FRUIT_LIST.map(f=>Math.max(1,12-f.power*1.4));
+  const total=weights.reduce((a,b)=>a+b,0); let r=Math.random()*total, fruit=FRUIT_LIST[0];
+  for(let i=0;i<FRUIT_LIST.length;i++){ r-=weights[i]; if(r<=0){ fruit=FRUIT_LIST[i]; break; } }
+  heldFruit=fruit; if(fruitModel) scene.remove(fruitModel);
+  fruitModel=createFruitModel(fruit); fruitModel.position.copy(player.position); fruitModel.position.y+=2.3; scene.add(fruitModel);
   document.getElementById('status').textContent=`Nhận Trái ${fruit.name}! Nhấn 1 để ăn`;
-  document.getElementById('fruit-status').style.display='block';
-  document.getElementById('fruit-name').textContent=fruit.name+' (chưa ăn)';
+  document.getElementById('fruit-status').style.display='block'; document.getElementById('fruit-name').textContent=fruit.name+' (chưa ăn)';
 }
 function buySpecificFruit(fruit){
-  if(dollars<fruit.price){document.getElementById('status').textContent=`Không đủ tiền! Cần ${fruit.price}$`;return;}
-  dollars-=fruit.price; updateDollar();
-  heldFruit = fruit;
-  if(fruitModel) scene.remove(fruitModel);
-  fruitModel = createFruitModel(fruit);
-  fruitModel.position.copy(player.position); fruitModel.position.y+=2.2; scene.add(fruitModel);
+  if(dollars<fruit.price){ document.getElementById('status').textContent=`Không đủ tiền! Cần ${fruit.price}$`; return; }
+  dollars-=fruit.price; updateDollar(); heldFruit=fruit;
+  if(fruitModel) scene.remove(fruitModel); fruitModel=createFruitModel(fruit); fruitModel.position.copy(player.position); fruitModel.position.y+=2.3; scene.add(fruitModel);
   document.getElementById('status').textContent=`Đã mua Trái ${fruit.name}! Nhấn 1 để ăn`;
-  document.getElementById('fruit-status').style.display='block';
-  document.getElementById('fruit-name').textContent=fruit.name+' (chưa ăn)';
-  closeShop();
+  document.getElementById('fruit-status').style.display='block'; document.getElementById('fruit-name').textContent=fruit.name+' (chưa ăn)'; closeShop();
 }
 function eatFruit(){
-  if(!heldFruit){document.getElementById('status').textContent='Không cầm trái nào!';return;}
-  if(auraMesh){scene.remove(auraMesh);auraMesh=null;}
+  if(!heldFruit){ document.getElementById('status').textContent='Không cầm trái nào!'; return; }
+  if(auraMesh){ scene.remove(auraMesh); auraMesh=null; }
   fruitAwakened=false; activeFruit=heldFruit; heldFruit=null;
-  if(fruitModel){scene.remove(fruitModel);fruitModel=null;}
+  if(fruitModel){ scene.remove(fruitModel); fruitModel=null; }
   document.getElementById('fruit-name').textContent=activeFruit.name;
   document.getElementById('status').textContent=`Đã ăn Trái ${activeFruit.name}!`;
   if(!isDragon) buildHumanForm();
 }
 
-// ========== HÀM TẠO HIỆU ỨNG ==========
-function spawnBall(pos, color, size=0.7, life=28){
-  const m = new THREE.Mesh(new THREE.SphereGeometry(size,8,8), new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.92}));
-  m.position.copy(pos); scene.add(m);
-  effects.push({mesh:m, life, type:'temp'});
+// ==================== EFFECTS ====================
+function spawnBall(pos,color,size=0.7,life=28,glow=true){
+  const m=new THREE.Mesh(new THREE.SphereGeometry(size,10,10), new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.95, blending:THREE.AdditiveBlending, depthWrite:false}));
+  m.position.copy(pos); scene.add(m); effects.push({mesh:m, life, type:'temp'});
+  if(glow){
+    const g=new THREE.Mesh(new THREE.SphereGeometry(size*2.1,10,10), new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.38, side:THREE.BackSide, depthWrite:false, blending:THREE.AdditiveBlending}));
+    g.position.copy(pos); scene.add(g); effects.push({mesh:g, life:life-2, type:'temp'});
+    const g2=new THREE.Mesh(new THREE.SphereGeometry(size*3.0,8,8), new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.15, side:THREE.BackSide, depthWrite:false, blending:THREE.AdditiveBlending}));
+    g2.position.copy(pos); scene.add(g2); effects.push({mesh:g2, life:life-6, type:'temp'});
+  }
 }
-function spawnRing(pos, color, inner, outer, life=30){
-  const m = new THREE.Mesh(new THREE.RingGeometry(inner, outer, 24), new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.75, side:THREE.DoubleSide}));
-  m.rotation.x = -Math.PI/2; m.position.copy(pos); scene.add(m);
-  effects.push({mesh:m, life, type:'temp'});
+function spawnRing(pos,color,inner,outer,life=30){
+  const m=new THREE.Mesh(new THREE.RingGeometry(inner,outer,32), new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.88, side:THREE.DoubleSide, blending:THREE.AdditiveBlending, depthWrite:false}));
+  m.rotation.x=-Math.PI/2; m.position.copy(pos); scene.add(m); effects.push({mesh:m, life, type:'temp'});
+}
+function spawnCone(pos,color,r=0.5,h=2.5,life=30){
+  const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,8), new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.93, blending:THREE.AdditiveBlending, depthWrite:false}));
+  m.position.copy(pos); scene.add(m); effects.push({mesh:m, life, type:'temp'});
+}
+function spawnCylinder(pos,color,rTop=0.2,rBot=0.4,h=3,life=25){
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(rTop,rBot,h,10), new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.9, blending:THREE.AdditiveBlending, depthWrite:false}));
+  m.position.copy(pos); scene.add(m); effects.push({mesh:m, life, type:'temp'});
+}
+function spawnParticles(center,color,count=16,speed=0.18,life=28,size=0.28){
+  for(let i=0;i<count;i++){
+    const s=size*(0.55+Math.random()*0.7);
+    const m=new THREE.Mesh(new THREE.SphereGeometry(s,6,6), new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.95, blending:THREE.AdditiveBlending, depthWrite:false}));
+    m.position.copy(center);
+    const dir=new THREE.Vector3((Math.random()-0.5)*2.2, Math.random()*1.8, (Math.random()-0.5)*2.2).normalize().multiplyScalar(speed*(0.75+Math.random()*0.9));
+    scene.add(m); effects.push({mesh:m, life:life+Math.random()*12, type:'particle', vel:dir});
+  }
 }
 
-// ========== CHIÊU THỨC RIÊNG TỪNG TRÁI ==========
+// ==================== SKILLS (đã sửa Quake nổi trên mặt đất) ====================
 function useZ(){
   if(!activeFruit) return;
-  const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
-  const start = player.position.clone(); start.y += 1.4*(isGiant?10:1);
-  const dmg = 65 * damageMult * (fruitAwakened?2.1:1);
-  const id = activeFruit.id;
-  const col = activeFruit.color;
+  const dir=new THREE.Vector3(); camera.getWorldDirection(dir);
+  const start=player.position.clone(); start.y+=1.4*(isGiant?10:1);
+  const dmg=65*damageMult*(fruitAwakened?2.1:1);
+  const id=activeFruit.id, col=activeFruit.color;
 
   switch(id){
-    case 'quake':
-      for(let i=0;i<8;i++){
-        const p = start.clone().add(dir.clone().multiplyScalar(5+i*3)); p.y=0.3;
-        spawnRing(p, 0xffaa44, 1.3+i*0.6, 2.1+i*0.6, 26);
-        damageArea(p, 7, dmg*0.6);
-      }
-      break;
-    case 'lightning': case 'plasma':
-      for(let i=0;i<6;i++){
-        const p = start.clone().add(dir.clone().multiplyScalar(8+i*4));
-        createLightningBolt(start, p, col);
-        damageArea(p, 5, dmg*0.7);
-      }
-      break;
-    case 'fire': case 'magma':
-      for(let i=0;i<7;i++){
-        const p = start.clone().add(dir.clone().multiplyScalar(6+i*3.5));
-        p.x += (Math.random()-0.5)*3; p.z += (Math.random()-0.5)*3;
-        spawnBall(p, col, 0.9, 32);
-        damageArea(p, 5.5, dmg*0.55);
-      }
-      break;
-    case 'ice': case 'snow': case 'crystal':
-      for(let i=0;i<6;i++){
-        const p = start.clone().add(dir.clone().multiplyScalar(7+i*3));
-        const spike = new THREE.Mesh(new THREE.ConeGeometry(0.5, 2.8, 5), new THREE.MeshBasicMaterial({color:col}));
-        spike.position.copy(p); spike.position.y=1.2; scene.add(spike);
-        effects.push({mesh:spike, life:35, type:'temp'});
-        damageArea(p, 5, dmg*0.6);
-      }
-      break;
-    case 'dark': case 'soul':
-      const hole = new THREE.Mesh(new THREE.SphereGeometry(2.2,12,12), new THREE.MeshBasicMaterial({color:0x110022, transparent:true, opacity:0.85}));
-      hole.position.copy(start).add(dir.clone().multiplyScalar(10)); scene.add(hole);
-      effects.push({mesh:hole, life:40, type:'blackhole'});
-      damageArea(hole.position, 11, dmg*1.1);
-      break;
-    case 'rubber': case 'mochi':
-      const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.4,16,8), new THREE.MeshBasicMaterial({color:col}));
-      arm.position.copy(start).add(dir.clone().multiplyScalar(8));
-      arm.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
+    case 'rubber':
+      const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.38,18,8), new THREE.MeshBasicMaterial({color:col}));
+      arm.position.copy(start).add(dir.clone().multiplyScalar(9)); arm.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir);
       scene.add(arm); effects.push({mesh:arm, life:22, type:'temp'});
-      damageRay(start, dir, 20, dmg*1.15);
-      break;
+      spawnParticles(start.clone().add(dir.clone().multiplyScalar(10)),col,10,0.12,20); damageRay(start,dir,22,dmg*1.2); break;
     case 'string':
-      for(let i=0;i<5;i++){
-        const p = start.clone().add(dir.clone().multiplyScalar(5+i*4));
-        const line = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,4,4), new THREE.MeshBasicMaterial({color:0xffffff}));
-        line.position.copy(p); line.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
-        scene.add(line); effects.push({mesh:line, life:25, type:'temp'});
-      }
-      damageRay(start, dir, 22, dmg);
-      break;
+      for(let i=0;i<6;i++){ const p=start.clone().add(dir.clone().multiplyScalar(4+i*3.5)); const line=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,3.5,5), new THREE.MeshBasicMaterial({color:0xffffff})); line.position.copy(p); line.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir); scene.add(line); effects.push({mesh:line, life:28, type:'temp'}); }
+      damageRay(start,dir,24,dmg); break;
+    case 'door':
+      const door=new THREE.Mesh(new THREE.BoxGeometry(2.2,3.2,0.25), new THREE.MeshBasicMaterial({color:0x8B4513}));
+      door.position.copy(start).add(dir.clone().multiplyScalar(8)); door.lookAt(player.position); scene.add(door); effects.push({mesh:door, life:40, type:'temp'});
+      player.position.add(dir.clone().multiplyScalar(8)); spawnParticles(door.position,0x8B4513,8,0.1,25); damageArea(door.position,4,dmg*0.7); break;
+    case 'paw':
+      for(let i=0;i<3;i++){ const p=start.clone().add(dir.clone().multiplyScalar(5+i*4)); spawnBall(p,col,1.15,20); spawnParticles(p,col,6,0.14,18); damageArea(p,5,dmg*0.75); } break;
+    case 'flower':
+      for(let i=0;i<12;i++){ const p=start.clone().add(dir.clone().multiplyScalar(3+i*2.1)); p.x+=(Math.random()-0.5)*2.2; p.y+=Math.random()*1.5; spawnBall(p,0xff66aa,0.32+Math.random()*0.25,26); }
+      damageRay(start,dir,20,dmg*0.9); break;
     case 'barrier':
-      const shield = new THREE.Mesh(new THREE.SphereGeometry(3.5,16,16), new THREE.MeshBasicMaterial({color:0x88aaff, transparent:true, opacity:0.4}));
-      shield.position.copy(player.position); scene.add(shield);
-      effects.push({mesh:shield, life:50, type:'temp'});
-      break;
-    default:
-      for(let i=0;i<7;i++){
-        const p = start.clone().add(dir.clone().multiplyScalar(6+i*3.2));
-        p.x += (Math.random()-0.5)*4; p.z += (Math.random()-0.5)*4;
-        spawnBall(p, col, 0.75, 30);
-        damageArea(p, 5.5, dmg*0.5);
+      const shield=new THREE.Mesh(new THREE.SphereGeometry(3.9,18,18), new THREE.MeshBasicMaterial({color:0x88aaff, transparent:true, opacity:0.32}));
+      shield.position.copy(player.position); scene.add(shield); effects.push({mesh:shield, life:55, type:'temp'}); spawnParticles(player.position,0x88aaff,15,0.08,30); break;
+    case 'magnet':
+      for(let i=0;i<14;i++){ const ang=(i/14)*Math.PI*2; const p=start.clone().add(new THREE.Vector3(Math.cos(ang)*6.5,1,Math.sin(ang)*6.5)); spawnBall(p,0x4466ff,0.42,22); }
+      damageArea(start.clone().add(dir.clone().multiplyScalar(7)),9,dmg*0.85); break;
+    case 'mochi':{
+      const mGroup=new THREE.Group();
+      const core=new THREE.Mesh(new THREE.SphereGeometry(0.85,12,12), new THREE.MeshBasicMaterial({color:0xffccaa, transparent:true, opacity:0.95, blending:THREE.AdditiveBlending, depthWrite:false})); mGroup.add(core);
+      const glow=new THREE.Mesh(new THREE.SphereGeometry(1.4,10,10), new THREE.MeshBasicMaterial({color:0xff8866, transparent:true, opacity:0.35, blending:THREE.AdditiveBlending, depthWrite:false})); mGroup.add(glow);
+      const ring=new THREE.Mesh(new THREE.TorusGeometry(0.95,0.22,8,16), new THREE.MeshBasicMaterial({color:0xffe0c0, transparent:true, opacity:0.9})); ring.rotation.x=Math.PI/2; mGroup.add(ring);
+      mGroup.position.copy(start).add(dir.clone().multiplyScalar(2)); scene.add(mGroup);
+      effects.push({mesh:mGroup, life:40, type:'mochiMissile', dir:dir.clone(), dmg:dmg*1.2});
+      spawnParticles(start,0xffccaa,14,0.12,20,0.28); document.getElementById('status').textContent='Mochi Z: Missile Jab!'; break;
+    }
+    case 'soul':
+      for(let i=0;i<9;i++){ const p=start.clone().add(dir.clone().multiplyScalar(4+i*2.4)); p.y+=Math.sin(i)*1.3; spawnBall(p,0xaa88ff,0.48,30,true); }
+      damageRay(start,dir,20,dmg*1.1); break;
+    case 'ope':
+      const room=new THREE.Mesh(new THREE.SphereGeometry(7.5,22,22), new THREE.MeshBasicMaterial({color:0x00ffaa, transparent:true, opacity:0.2, wireframe:true}));
+      room.position.copy(start).add(dir.clone().multiplyScalar(6)); scene.add(room); effects.push({mesh:room, life:45, type:'temp'});
+      spawnParticles(room.position,0x00ffaa,12,0.1,30); damageArea(room.position,8,dmg*1.05); break;
+    case 'quake':
+      for(let i=0;i<9;i++){
+        const p=start.clone().add(dir.clone().multiplyScalar(5+i*3));
+        p.y = getGroundHeight(p.x, p.z) + 0.15;   // ← SỬA: nổi trên mặt đất
+        spawnRing(p, 0xffaa44, 1.4+i*0.65, 2.4+i*0.65, 28);
+        spawnParticles(p, 0xffaa44, 10, 0.16, 22, 0.32);
+        damageArea(p, 7.2, dmg*0.6);
       }
+      break;
+    case 'ice':
+      for(let i=0;i<6;i++){ const p=start.clone().add(dir.clone().multiplyScalar(6+i*3)); p.y=getGroundHeight(p.x,p.z)+0.3; spawnCone(p,0x88ddff,0.55,2.9,32); spawnParticles(p,0xaaeeff,4,0.08,20,0.2); damageArea(p,4.5,dmg*0.65); } break;
+    case 'fire':
+      for(let i=0;i<9;i++){ const p=start.clone().add(dir.clone().multiplyScalar(5+i*3.1)); p.x+=(Math.random()-0.5)*3; p.z+=(Math.random()-0.5)*3; spawnBall(p,0xff3300,1.0,32); spawnParticles(p,0xff6600,9,0.18,22,0.3); damageArea(p,5.2,dmg*0.55); } break;
+    case 'light':
+      const beam=new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.14,32,7), new THREE.MeshBasicMaterial({color:0xffd700, transparent:true, opacity:0.92}));
+      beam.position.copy(start).add(dir.clone().multiplyScalar(16)); beam.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir); scene.add(beam); effects.push({mesh:beam, life:14, type:'temp'});
+      spawnParticles(start.clone().add(dir.clone().multiplyScalar(15)),0xffd700,14,0.12,20); damageRay(start,dir,32,dmg*1.25); break;
+    case 'dark':
+      const hole=new THREE.Mesh(new THREE.SphereGeometry(2.4,14,14), new THREE.MeshBasicMaterial({color:0x110022, transparent:true, opacity:0.92}));
+      hole.position.copy(start).add(dir.clone().multiplyScalar(9)); scene.add(hole); effects.push({mesh:hole, life:42, type:'blackhole'});
+      spawnParticles(hole.position,0x5500aa,16,0.14,28,0.3); spawnParticles(hole.position,0xaa66ff,8,0.1,22,0.2); damageArea(hole.position,10.5,dmg*1.15); break;
+    case 'smoke':
+      for(let i=0;i<11;i++){ const p=start.clone().add(dir.clone().multiplyScalar(3+i*2.4)); p.x+=(Math.random()-0.5)*3.2; p.y+=Math.random()*2.2; spawnBall(p,0x777777,0.95+Math.random()*0.4,38); }
+      damageArea(start.clone().add(dir.clone().multiplyScalar(10)),8,dmg*0.7); break;
+    case 'sand':
+      for(let i=0;i<5;i++){ const p=start.clone().add(dir.clone().multiplyScalar(5+i*3.5)); p.y=getGroundHeight(p.x,p.z)+0.2; spawnCylinder(p,0xddbb66,0.32,0.95,3.6,28); spawnParticles(p,0xddbb66,6,0.1,20); damageArea(p,4.5,dmg*0.6); } break;
+    case 'snow':
+      for(let i=0;i<16;i++){ const p=start.clone().add(dir.clone().multiplyScalar(2+Math.random()*18)); p.x+=(Math.random()-0.5)*6.5; p.y+=Math.random()*4.5; spawnBall(p,0xeeffff,0.28+Math.random()*0.2,42); }
+      damageArea(start.clone().add(dir.clone().multiplyScalar(10)),9,dmg*0.65); break;
+    case 'gas':
+      for(let i=0;i<9;i++){ const p=start.clone().add(dir.clone().multiplyScalar(4+i*2.7)); p.x+=(Math.random()-0.5)*2.8; spawnBall(p,0x88ff44,0.75,42); }
+      damageArea(start.clone().add(dir.clone().multiplyScalar(12)),8,dmg*0.8); break;
+    case 'magma':
+      for(let i=0;i<7;i++){ const p=start.clone().add(dir.clone().multiplyScalar(5+i*3)); spawnBall(p,0xff2200,1.05,34); spawnParticles(p,0xff4400,6,0.14,20); damageArea(p,5.5,dmg*0.7); } break;
+    case 'lightning':
+      for(let i=0;i<6;i++){ const p=start.clone().add(dir.clone().multiplyScalar(7+i*4)); createLightningBolt(start,p,0xffff00); spawnParticles(p,0xffff66,10,0.2,18,0.28); damageArea(p,5.2,dmg*0.75); } break;
+    case 'swamp':
+      for(let i=0;i<6;i++){ const p=start.clone().add(dir.clone().multiplyScalar(4+i*3)); p.y=getGroundHeight(p.x,p.z)+0.15; const mud=new THREE.Mesh(new THREE.CylinderGeometry(1.25+i*0.3,1.55+i*0.3,0.65,9), new THREE.MeshBasicMaterial({color:0x446622, transparent:true, opacity:0.8})); mud.position.copy(p); scene.add(mud); effects.push({mesh:mud, life:35, type:'temp'}); damageArea(p,5,dmg*0.55); } break;
+    case 'plasma':
+      for(let i=0;i<4;i++){ const p=start.clone().add(dir.clone().multiplyScalar(6+i*5)); createLightningBolt(start,p,0xff00ff); spawnParticles(p,0xff44ff,7,0.16,18); damageArea(p,5.5,dmg*0.8); } break;
+    case 'mist':
+      for(let i=0;i<14;i++){ const p=start.clone().add(dir.clone().multiplyScalar(2+Math.random()*14)); p.x+=(Math.random()-0.5)*5.5; p.y+=Math.random()*3.2; spawnBall(p,0xaaccff,1.15,48); }
+      damageArea(start.clone().add(dir.clone().multiplyScalar(8)),9,dmg*0.6); break;
+    case 'crystal':
+      for(let i=0;i<7;i++){ const p=start.clone().add(dir.clone().multiplyScalar(5+i*2.8)); const cry=new THREE.Mesh(new THREE.OctahedronGeometry(0.72,0), new THREE.MeshBasicMaterial({color:0xaaffff, transparent:true, opacity:0.92})); cry.position.copy(p); cry.position.y+=0.85; scene.add(cry); effects.push({mesh:cry, life:30, type:'temp'}); spawnParticles(p,0xccffff,4,0.1,18); damageArea(p,4,dmg*0.65); } break;
   }
-  document.getElementById('status').textContent = activeFruit.name + ' • Z';
+  document.getElementById('status').textContent=activeFruit.name+' • Z';
 }
 
 function useX(){
   if(!activeFruit) return;
-  const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
-  const start = player.position.clone(); start.y += 1.3*(isGiant?10:1);
-  const dmg = 90 * damageMult * (fruitAwakened?2.2:1);
-  const id = activeFruit.id;
-  const col = activeFruit.color;
+  const dir=new THREE.Vector3(); camera.getWorldDirection(dir);
+  const start=player.position.clone(); start.y+=1.3*(isGiant?10:1);
+  const dmg=90*damageMult*(fruitAwakened?2.2:1);
+  const id=activeFruit.id, col=activeFruit.color;
 
   switch(id){
+    case 'rubber':{
+      const ball=new THREE.Mesh(new THREE.SphereGeometry(1.55,12,12), new THREE.MeshBasicMaterial({color:col}));
+      ball.position.copy(start).add(dir.clone().multiplyScalar(3)); scene.add(ball); effects.push({mesh:ball, life:55, type:'rubberball', dir:dir.clone()});
+      spawnParticles(ball.position,col,8,0.12,20); break;
+    }
+    case 'mochi':{
+      for(let i=0;i<8;i++){
+        const p=start.clone().add(dir.clone().multiplyScalar(3+i*2.8));
+        p.y = Math.max(getGroundHeight(p.x,p.z)+0.3, p.y-0.5);
+        const wave=new THREE.Mesh(new THREE.BoxGeometry(4.5+i*0.4,1.2+i*0.25,2.2), new THREE.MeshBasicMaterial({color:0xffccaa, transparent:true, opacity:0.85-i*0.06, blending:THREE.AdditiveBlending, depthWrite:false}));
+        wave.position.copy(p); wave.lookAt(p.clone().add(dir)); scene.add(wave); effects.push({mesh:wave, life:28+i*2, type:'temp'});
+        const spike=new THREE.Mesh(new THREE.ConeGeometry(0.35,1.4+Math.random(),6), new THREE.MeshBasicMaterial({color:0xffaa88, transparent:true, opacity:0.9}));
+        spike.position.copy(p); spike.position.y+=1.2; scene.add(spike); effects.push({mesh:spike, life:24, type:'temp'});
+        damageArea(p,5.5,dmg*0.55);
+      }
+      spawnParticles(start.clone().add(dir.clone().multiplyScalar(10)),0xffccaa,20,0.14,26,0.3);
+      document.getElementById('status').textContent='Mochi X: Pastry River!'; break;
+    }
     case 'quake':
-      const fist = new THREE.Mesh(new THREE.SphereGeometry(1.9,10,10), new THREE.MeshBasicMaterial({color:0xaa6633, transparent:true, opacity:0.9}));
-      fist.position.copy(start).add(dir.clone().multiplyScalar(4)); scene.add(fist);
-      effects.push({mesh:fist, life:18, type:'temp'});
-      damageRay(start, dir, 16, dmg*1.35);
-      camPitch += (Math.random()-0.5)*0.1;
-      break;
+      const fist=new THREE.Mesh(new THREE.SphereGeometry(2.0,12,12), new THREE.MeshBasicMaterial({color:0xaa6633, transparent:true, opacity:0.92}));
+      fist.position.copy(start).add(dir.clone().multiplyScalar(4)); scene.add(fist); effects.push({mesh:fist, life:18, type:'temp'});
+      spawnParticles(fist.position,0xffaa44,12,0.18,16); damageRay(start,dir,16,dmg*1.35); camPitch+=(Math.random()-0.5)*0.14; break;
     case 'lightning': case 'plasma': case 'light':
-      createLightningBolt(start, start.clone().add(dir.clone().multiplyScalar(25)), col);
-      damageRay(start, dir, 25, dmg*1.2);
-      break;
+      createLightningBolt(start, start.clone().add(dir.clone().multiplyScalar(26)), col);
+      spawnParticles(start.clone().add(dir.clone().multiplyScalar(12)),col,10,0.15,18); damageRay(start,dir,26,dmg*1.25); break;
     case 'fire': case 'magma':
-      for(let i=0;i<4;i++){
-        const p = start.clone().add(dir.clone().multiplyScalar(3+i*3));
-        spawnBall(p, col, 1.1, 20);
-      }
-      damageRay(start, dir, 15, dmg);
-      break;
+      for(let i=0;i<5;i++){ const p=start.clone().add(dir.clone().multiplyScalar(2.5+i*2.9)); spawnBall(p,col,1.05,24); spawnParticles(p,col,4,0.14,16); }
+      damageRay(start,dir,14,dmg*1.1); break;
     case 'dark': case 'soul':
-      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.3,1.2,4), new THREE.MeshBasicMaterial({color:0x220044}));
-      blade.position.copy(start).add(dir.clone().multiplyScalar(3));
-      blade.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), dir);
-      scene.add(blade); effects.push({mesh:blade, life:16, type:'temp'});
-      damageRay(start, dir, 12, dmg*1.25);
-      break;
-    case 'rubber': case 'mochi':
-      const ball = new THREE.Mesh(new THREE.SphereGeometry(1.4,10,10), new THREE.MeshBasicMaterial({color:col}));
-      ball.position.copy(start).add(dir.clone().multiplyScalar(3)); scene.add(ball);
-      effects.push({mesh:ball, life:55, type:'rubberball', dir:dir.clone()});
-      break;
-    case 'magnet':
-      // Hút nhẹ
-      damageArea(start.clone().add(dir.clone().multiplyScalar(8)), 10, dmg*0.8);
-      for(let i=0;i<10;i++){
-        const p = start.clone().add(dir.clone().multiplyScalar(4+Math.random()*10));
-        spawnBall(p, 0x4444ff, 0.4, 20);
-      }
-      break;
+      const blade=new THREE.Mesh(new THREE.BoxGeometry(0.28,1.1,5.2), new THREE.MeshBasicMaterial({color:id==='dark'?0x220044:0xaa88ff}));
+      blade.position.copy(start).add(dir.clone().multiplyScalar(3.5)); blade.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),dir); scene.add(blade); effects.push({mesh:blade, life:16, type:'temp'});
+      spawnParticles(blade.position,col,8,0.12,18); damageRay(start,dir,13,dmg*1.25); break;
     default:
-      for(let i=0;i<5;i++){
-        const p = start.clone().add(dir.clone().multiplyScalar(3+i*2.8));
-        spawnBall(p, col, 0.85, 22);
-      }
-      damageRay(start, dir, 14, dmg);
+      for(let i=0;i<6;i++){ const p=start.clone().add(dir.clone().multiplyScalar(3+i*2.6)); spawnBall(p,col,0.9,24); }
+      spawnParticles(start.clone().add(dir.clone().multiplyScalar(8)),col,8,0.12,18); damageRay(start,dir,15,dmg);
   }
-  document.getElementById('status').textContent = activeFruit.name + ' • X';
+  document.getElementById('status').textContent=activeFruit.name+' • X';
 }
 
 function useC(){
   if(!activeFruit) return;
-  const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
-  const start = player.position.clone(); start.y += 1.4*(isGiant?10:1);
-  const dmg = 80 * damageMult * (fruitAwakened?2.1:1);
-  const id = activeFruit.id;
-  const col = activeFruit.color;
+  const dir=new THREE.Vector3(); camera.getWorldDirection(dir);
+  const start=player.position.clone(); start.y+=1.4*(isGiant?10:1);
+  const dmg=80*damageMult*(fruitAwakened?2.1:1);
+  const id=activeFruit.id, col=activeFruit.color;
 
   switch(id){
     case 'quake':
       for(let i=0;i<12;i++){
-        const ang = (i/12)*Math.PI*2;
-        const p = start.clone().add(new THREE.Vector3(Math.cos(ang)*9, 0, Math.sin(ang)*9));
-        const wave = new THREE.Mesh(new THREE.CylinderGeometry(0.25,1.1,3.5,6), new THREE.MeshBasicMaterial({color:0x996633, transparent:true, opacity:0.75}));
-        wave.position.copy(p); wave.position.y=1.8; scene.add(wave);
-        effects.push({mesh:wave, life:28, type:'temp'});
+        const ang=(i/12)*Math.PI*2;
+        const p=start.clone().add(new THREE.Vector3(Math.cos(ang)*9.5, 0, Math.sin(ang)*9.5));
+        p.y = getGroundHeight(p.x, p.z) + 0.2;   // ← SỬA
+        const wave=new THREE.Mesh(new THREE.CylinderGeometry(0.28,1.2,3.6,7), new THREE.MeshBasicMaterial({color:0x996633, transparent:true, opacity:0.8}));
+        wave.position.copy(p); wave.position.y += 1.8; scene.add(wave); effects.push({mesh:wave, life:28, type:'temp'});
       }
-      damageArea(start, 13, dmg*1.25);
-      break;
-    case 'ice': case 'snow':
-      const iceFloor = new THREE.Mesh(new THREE.CircleGeometry(12,20), new THREE.MeshBasicMaterial({color:0xaaeeff, transparent:true, opacity:0.55}));
-      iceFloor.rotation.x = -Math.PI/2; iceFloor.position.copy(start); iceFloor.position.y=0.15;
-      scene.add(iceFloor); effects.push({mesh:iceFloor, life:45, type:'temp'});
-      damageArea(start, 12, dmg);
-      break;
-    case 'fire': case 'magma':
-      for(let i=0;i<10;i++){
-        const ang = (i/10)*Math.PI*2;
-        const p = start.clone().add(new THREE.Vector3(Math.cos(ang)*8, 1.5, Math.sin(ang)*8));
-        spawnBall(p, col, 0.9, 30);
-      }
-      damageArea(start, 11, dmg);
-      break;
+      spawnParticles(start,0xffaa44,18,0.16,22); damageArea(start,13.5,dmg*1.25); break;
     case 'barrier':
-      const wall = new THREE.Mesh(new THREE.BoxGeometry(10,5,1), new THREE.MeshBasicMaterial({color:0x88aaff, transparent:true, opacity:0.5}));
-      wall.position.copy(start).add(dir.clone().multiplyScalar(6)); wall.lookAt(player.position);
-      scene.add(wall); effects.push({mesh:wall, life:60, type:'temp'});
-      break;
-    case 'flower':
-      for(let i=0;i<8;i++){
-        const p = start.clone().add(dir.clone().multiplyScalar(5+i*2));
-        const hand = new THREE.Mesh(new THREE.SphereGeometry(0.5,6,6), new THREE.MeshBasicMaterial({color:0xff66aa}));
-        hand.position.copy(p); scene.add(hand);
-        effects.push({mesh:hand, life:30, type:'temp'});
-        damageArea(p, 4, dmg*0.5);
-      }
-      break;
+      const dome=new THREE.Mesh(new THREE.SphereGeometry(6.5,18,18), new THREE.MeshBasicMaterial({color:0x88aaff, transparent:true, opacity:0.28}));
+      dome.position.copy(player.position); scene.add(dome); effects.push({mesh:dome, life:55, type:'temp'}); spawnParticles(player.position,0x88aaff,16,0.1,30); break;
+    case 'ope':
+      const bigRoom=new THREE.Mesh(new THREE.SphereGeometry(13,26,26), new THREE.MeshBasicMaterial({color:0x00ffaa, transparent:true, opacity:0.16, wireframe:true}));
+      bigRoom.position.copy(player.position); scene.add(bigRoom); effects.push({mesh:bigRoom, life:50, type:'temp'});
+      spawnParticles(start,0x00ffaa,14,0.12,28); damageArea(start,13.5,dmg*1.2); break;
+    case 'ice': case 'snow':
+      const iceFloor=new THREE.Mesh(new THREE.CircleGeometry(13,24), new THREE.MeshBasicMaterial({color:0xaaeeff, transparent:true, opacity:0.55}));
+      iceFloor.rotation.x=-Math.PI/2; iceFloor.position.copy(start); iceFloor.position.y=getGroundHeight(start.x,start.z)+0.1;
+      scene.add(iceFloor); effects.push({mesh:iceFloor, life:45, type:'temp'}); spawnParticles(start,0xccffff,16,0.1,30); damageArea(start,13,dmg); break;
+    case 'fire': case 'magma':
+      for(let i=0;i<14;i++){ const ang=(i/14)*Math.PI*2; const p=start.clone().add(new THREE.Vector3(Math.cos(ang)*9.5,1.6,Math.sin(ang)*9.5)); spawnBall(p,col,0.95,30); }
+      spawnParticles(start,col,20,0.15,25); damageArea(start,12,dmg*1.05); break;
+    case 'lightning': case 'plasma':
+      for(let i=0;i<10;i++){ const ang=(i/10)*Math.PI*2; const p=start.clone().add(new THREE.Vector3(Math.cos(ang)*11,9+Math.random()*6,Math.sin(ang)*11)); createLightningBolt(p, start.clone().add(new THREE.Vector3(Math.cos(ang)*3,0,Math.sin(ang)*3)), col); }
+      spawnParticles(start,col,16,0.18,20); damageArea(start,13,dmg*1.2); break;
     case 'dark': case 'soul':
-      damageArea(player.position, 12, dmg*1.1);
-      const dark = new THREE.Mesh(new THREE.SphereGeometry(9,14,14), new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:0.45}));
-      dark.position.copy(player.position); scene.add(dark);
-      effects.push({mesh:dark, life:30, type:'temp'});
-      break;
+      const dark=new THREE.Mesh(new THREE.SphereGeometry(9.5,16,16), new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:0.48}));
+      dark.position.copy(player.position); scene.add(dark); effects.push({mesh:dark, life:32, type:'temp'}); spawnParticles(start,0x330055,14,0.12,25); damageArea(start,12.5,dmg*1.15); break;
+    case 'mochi':{
+      const donut=new THREE.Mesh(new THREE.TorusGeometry(2.2,0.85,12,24), new THREE.MeshBasicMaterial({color:0xffccaa, transparent:true, opacity:0.95}));
+      for(let s=0;s<12;s++){ const ang=(s/12)*Math.PI*2; const spike=new THREE.Mesh(new THREE.ConeGeometry(0.25,1.1,5), new THREE.MeshBasicMaterial({color:0x442211})); spike.position.set(Math.cos(ang)*2.5, Math.sin(ang)*2.5, 0); spike.lookAt(0,0,0); donut.add(spike); }
+      donut.position.copy(start); donut.lookAt(start.clone().add(dir)); scene.add(donut);
+      effects.push({mesh:donut, life:32, type:'mochiDonut', dir:dir.clone(), dmg:dmg*1.3});
+      for(let i=0;i<6;i++){ const p=start.clone().add(dir.clone().multiplyScalar(2+i*3)); spawnParticles(p,0xffccaa,6,0.12,16,0.25); }
+      document.getElementById('status').textContent='Mochi C: Piercing Clothesline!'; break;
+    }
     default:
-      for(let i=0;i<12;i++){
-        const ang = (i/12)*Math.PI*2;
-        const p = start.clone().add(new THREE.Vector3(Math.cos(ang)*9, 1.2, Math.sin(ang)*9));
-        spawnBall(p, col, 0.7, 26);
-      }
-      damageArea(start, 11, dmg);
+      for(let i=0;i<14;i++){ const ang=(i/14)*Math.PI*2; const p=start.clone().add(new THREE.Vector3(Math.cos(ang)*9.5,1.3,Math.sin(ang)*9.5)); spawnBall(p,col,0.75,26); }
+      spawnParticles(start,col,14,0.13,22); damageArea(start,12,dmg);
   }
-  document.getElementById('status').textContent = activeFruit.name + ' • C';
+  document.getElementById('status').textContent=activeFruit.name+' • C';
 }
 
 function useV(){
   if(!activeFruit) return;
-  fruitAwakened = !fruitAwakened;
-  if(auraMesh){scene.remove(auraMesh); auraMesh=null;}
+  fruitAwakened=!fruitAwakened;
+  if(auraMesh){ scene.remove(auraMesh); auraMesh=null; }
+  if(!fruitAwakened){ document.getElementById('status').textContent='Tắt thức tỉnh'; if(!isDragon) buildHumanForm(); return; }
 
-  if(!fruitAwakened){
-    document.getElementById('status').textContent = 'Tắt thức tỉnh';
-    if(!isDragon) buildHumanForm();
-    return;
-  }
+  const id=activeFruit.id, col=activeFruit.color, start=player.position.clone();
+  spawnParticles(start,col,45,0.28,40,0.4); spawnParticles(start,0xffffff,18,0.2,25,0.22);
 
-  const id = activeFruit.id;
-  const col = activeFruit.color;
-
-  if(id === 'quake'){
-    document.getElementById('status').textContent = '⚡ CHẤN ĐỘNG V: VỠ KHÔNG GIAN!!!';
-    for(let i=0;i<18;i++){
-      const crack = new THREE.Mesh(new THREE.PlaneGeometry(0.18+Math.random()*0.45, 9+Math.random()*13), new THREE.MeshBasicMaterial({color:0xffaa33, transparent:true, opacity:0.92, side:THREE.DoubleSide}));
-      const ang = Math.random()*Math.PI*2, dist = 4+Math.random()*18;
-      crack.position.set(player.position.x+Math.cos(ang)*dist, player.position.y+2+Math.random()*9, player.position.z+Math.sin(ang)*dist);
+  if(id==='quake'){
+    document.getElementById('status').textContent='⚡ CHẤN ĐỘNG V: VỠ KHÔNG GIAN!!!';
+    for(let i=0;i<20;i++){
+      const crack=new THREE.Mesh(new THREE.PlaneGeometry(0.2+Math.random()*0.5,10+Math.random()*14), new THREE.MeshBasicMaterial({color:0xffaa33, transparent:true, opacity:0.93, side:THREE.DoubleSide}));
+      const ang=Math.random()*Math.PI*2, dist=4+Math.random()*19;
+      const gx=start.x+Math.cos(ang)*dist, gz=start.z+Math.sin(ang)*dist;
+      crack.position.set(gx, getGroundHeight(gx,gz)+2+Math.random()*8, gz);
       crack.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
-      scene.add(crack); effects.push({mesh:crack, life:50, type:'spaceCrack'});
+      scene.add(crack); effects.push({mesh:crack, life:52, type:'spaceCrack'});
     }
-    for(let r=0;r<5;r++){
-      const ring = new THREE.Mesh(new THREE.RingGeometry(5+r*5, 7.5+r*5, 32), new THREE.MeshBasicMaterial({color:0xff6600, transparent:true, opacity:0.55, side:THREE.DoubleSide}));
-      ring.rotation.x = -Math.PI/2; ring.position.copy(player.position); ring.position.y = 0.3;
-      scene.add(ring); effects.push({mesh:ring, life:42, type:'quakeRing'});
+    for(let r=0;r<6;r++){
+      const ring=new THREE.Mesh(new THREE.RingGeometry(5+r*5,7.8+r*5,36), new THREE.MeshBasicMaterial({color:0xff6600, transparent:true, opacity:0.55, side:THREE.DoubleSide}));
+      ring.rotation.x=-Math.PI/2; ring.position.copy(start);
+      ring.position.y = getGroundHeight(start.x, start.z) + 0.2;   // ← SỬA
+      scene.add(ring); effects.push({mesh:ring, life:44, type:'quakeRing'});
     }
-    damageArea(player.position, 28, 190 * damageMult);
-    for(let i=0;i<12;i++) setTimeout(()=>{camYaw+=(Math.random()-0.5)*0.13; camPitch+=(Math.random()-0.5)*0.09;}, i*40);
-    auraMesh = new THREE.Mesh(new THREE.SphereGeometry(3.8,16,16), new THREE.MeshBasicMaterial({color:0xff8800, transparent:true, opacity:0.28}));
-  }
-  else if(id === 'lightning' || id === 'plasma'){
-    document.getElementById('status').textContent = activeFruit.name + ' V: Sét Liên Hoàn!';
-    for(let i=0;i<12;i++){
-      const p = player.position.clone();
-      p.x += (Math.random()-0.5)*20; p.z += (Math.random()-0.5)*20; p.y = 15+Math.random()*10;
-      createLightningBolt(p, player.position.clone().add(new THREE.Vector3((Math.random()-0.5)*8,0,(Math.random()-0.5)*8)), col);
+    damageArea(start,30,195*damageMult);
+    for(let i=0;i<14;i++) setTimeout(()=>{ camYaw+=(Math.random()-0.5)*0.14; camPitch+=(Math.random()-0.5)*0.1; }, i*35);
+    auraMesh=new THREE.Mesh(new THREE.SphereGeometry(4.0,18,18), new THREE.MeshBasicMaterial({color:0xff8800, transparent:true, opacity:0.28}));
+  } else if(id==='rubber'){
+    document.getElementById('status').textContent=activeFruit.name+' V: Phóng to!';
+    player.scale.set(isGiant?15:3.6, isGiant?15:3.6, isGiant?15:3.6);
+    setTimeout(()=>player.scale.set(isGiant?10:1, isGiant?10:1, isGiant?10:1), 2800);
+    damageArea(start,14,115*damageMult);
+    auraMesh=new THREE.Mesh(new THREE.SphereGeometry(3.2,14,14), new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0.32}));
+  } else if(id==='mochi'){
+    document.getElementById('status').textContent='Mochi V: Dough Fist Fusillade!';
+    const dir=new THREE.Vector3(); camera.getWorldDirection(dir);
+    const aim=start.clone().add(dir.clone().multiplyScalar(12)); aim.y=start.y+1;
+    for(let i=0;i<8;i++){
+      const ang=(i/8)*Math.PI*2, ox=Math.cos(ang)*5, oz=Math.sin(ang)*5;
+      const ring=new THREE.Mesh(new THREE.TorusGeometry(1.3,0.45,10,18), new THREE.MeshBasicMaterial({color:0xffccaa, transparent:true, opacity:0.92}));
+      ring.position.set(aim.x+ox, aim.y+1.5, aim.z+oz); ring.lookAt(aim); scene.add(ring); effects.push({mesh:ring, life:45, type:'temp'});
+      for(let j=0;j<4;j++){
+        setTimeout(()=>{
+          const fist=new THREE.Mesh(new THREE.SphereGeometry(0.55,8,8), new THREE.MeshBasicMaterial({color:0xffaa88, transparent:true, opacity:0.95, blending:THREE.AdditiveBlending, depthWrite:false}));
+          const from=ring.position.clone(); fist.position.copy(from); scene.add(fist);
+          const toAim=aim.clone().add(dir.clone().multiplyScalar(3));
+          effects.push({mesh:fist, life:22, type:'mochiFist', dir:toAim.clone().sub(from).normalize(), dmg:55*damageMult});
+        }, i*40+j*50);
+      }
     }
-    damageArea(player.position, 18, 130 * damageMult);
-    auraMesh = new THREE.Mesh(new THREE.SphereGeometry(2.8,12,12), new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0.35}));
+    spawnParticles(aim,0xffccaa,30,0.2,35,0.35); damageArea(aim,12,140*damageMult);
+    auraMesh=new THREE.Mesh(new THREE.SphereGeometry(3.4,14,14), new THREE.MeshBasicMaterial({color:0xffccaa, transparent:true, opacity:0.35}));
+  } else if(id==='lightning'||id==='plasma'||id==='light'){
+    document.getElementById('status').textContent=activeFruit.name+' V: Sét Liên Hoàn!';
+    for(let i=0;i<16;i++){ const p=start.clone(); p.x+=(Math.random()-0.5)*24; p.z+=(Math.random()-0.5)*24; p.y=14+Math.random()*12; createLightningBolt(p, start.clone().add(new THREE.Vector3((Math.random()-0.5)*7,0,(Math.random()-0.5)*7)), col); }
+    damageArea(start,19,145*damageMult);
+    auraMesh=new THREE.Mesh(new THREE.SphereGeometry(3.2,14,14), new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0.38}));
+  } else if(id==='dark'||id==='soul'){
+    document.getElementById('status').textContent=activeFruit.name+' V: Hố Đen Hút!';
+    const hole=new THREE.Mesh(new THREE.SphereGeometry(4.8,18,18), new THREE.MeshBasicMaterial({color:0x110022, transparent:true, opacity:0.85}));
+    hole.position.copy(start); scene.add(hole); effects.push({mesh:hole, life:58, type:'blackhole'});
+    damageArea(start,18,150*damageMult);
+    auraMesh=new THREE.Mesh(new THREE.SphereGeometry(3.4,14,14), new THREE.MeshBasicMaterial({color:0x220033, transparent:true, opacity:0.42}));
+  } else if(id==='ope'){
+    document.getElementById('status').textContent='Phòng V: ROOM Lớn!';
+    const room=new THREE.Mesh(new THREE.SphereGeometry(17,30,30), new THREE.MeshBasicMaterial({color:0x00ffaa, transparent:true, opacity:0.18, wireframe:true}));
+    room.position.copy(start); scene.add(room); effects.push({mesh:room, life:62, type:'temp'});
+    damageArea(start,18,155*damageMult);
+    auraMesh=new THREE.Mesh(new THREE.SphereGeometry(3.2,14,14), new THREE.MeshBasicMaterial({color:0x00ffaa, transparent:true, opacity:0.32}));
+  } else {
+    for(let i=0;i<28;i++){ const p=start.clone(); p.x+=(Math.random()-0.5)*16; p.y+=1+Math.random()*8; p.z+=(Math.random()-0.5)*16; spawnBall(p,col,0.7+Math.random()*0.55,40); }
+    damageArea(start,16,120*damageMult);
+    auraMesh=new THREE.Mesh(new THREE.SphereGeometry(2.9,14,14), new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0.35}));
+    document.getElementById('status').textContent=activeFruit.name+' V: Thức tỉnh!';
   }
-  else if(id === 'dark' || id === 'soul'){
-    document.getElementById('status').textContent = activeFruit.name + ' V: Hố Đen!';
-    const hole = new THREE.Mesh(new THREE.SphereGeometry(4,16,16), new THREE.MeshBasicMaterial({color:0x110022, transparent:true, opacity:0.8}));
-    hole.position.copy(player.position); scene.add(hole);
-    effects.push({mesh:hole, life:50, type:'blackhole'});
-    damageArea(player.position, 16, 140 * damageMult);
-    auraMesh = new THREE.Mesh(new THREE.SphereGeometry(3,12,12), new THREE.MeshBasicMaterial({color:0x220033, transparent:true, opacity:0.4}));
-  }
-  else if(id === 'rubber' || id === 'mochi'){
-    document.getElementById('status').textContent = activeFruit.name + ' V: Phóng to!';
-    player.scale.set(isGiant?15:3, isGiant?15:3, isGiant?15:3);
-    setTimeout(()=>player.scale.set(isGiant?10:1, isGiant?10:1, isGiant?10:1), 2500);
-    damageArea(player.position, 12, 100 * damageMult);
-    auraMesh = new THREE.Mesh(new THREE.SphereGeometry(2.5,12,12), new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0.3}));
-  }
-  else {
-    // Mặc định: burst hạt + aura
-    for(let i=0;i<22;i++){
-      const p = player.position.clone();
-      p.x += (Math.random()-0.5)*14;
-      p.y += 1 + Math.random()*7;
-      p.z += (Math.random()-0.5)*14;
-      spawnBall(p, col, 0.7+Math.random()*0.5, 38);
-    }
-    damageArea(player.position, 15, 110 * damageMult);
-    auraMesh = new THREE.Mesh(new THREE.SphereGeometry(2.5,12,12), new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0.33}));
-    document.getElementById('status').textContent = activeFruit.name + ' V: Thức tỉnh!';
-  }
-
-  if(auraMesh){auraMesh.position.copy(player.position); scene.add(auraMesh);}
+  if(auraMesh){ auraMesh.position.copy(player.position); scene.add(auraMesh); }
 }
 
-// Phần còn lại giữ nguyên logic cũ (Earth Wall, Haki, Hero, Damage, Level, Shop, Mobile...)
-
+// ==================== REST ====================
 function createEarthWall(){
-  const dir = new THREE.Vector3(); camera.getWorldDirection(dir); dir.y=0; dir.normalize();
-  const wall = new THREE.Mesh(new THREE.BoxGeometry(9,6.5,1.4), new THREE.MeshLambertMaterial({color:0x8B4513}));
-  const pos = player.position.clone().add(dir.multiplyScalar(6.5));
-  wall.position.set(pos.x,3.25,pos.z); wall.lookAt(player.position.x,3.25,player.position.z); wall.rotateY(Math.PI);
-  scene.add(wall); earthWalls.push({mesh:wall,life:10});
+  const dir=new THREE.Vector3(); camera.getWorldDirection(dir); dir.y=0; dir.normalize();
+  const wall=new THREE.Mesh(new THREE.BoxGeometry(9.5,6.8,1.5), makeToonMat(0x8B4513));
+  const pos=player.position.clone().add(dir.multiplyScalar(6.8));
+  wall.position.set(pos.x,3.4,pos.z); wall.lookAt(player.position.x,3.4,player.position.z); wall.rotateY(Math.PI);
+  wall.castShadow=wall.receiveShadow=true; scene.add(wall); earthWalls.push({mesh:wall, life:10});
   document.getElementById('status').textContent='Tường Đất (10s)';
 }
-let originalBackground = new THREE.Color(0x87CEEB), originalFog = scene.fog.clone(), originalAmbient = 0.75;
-function toggleObservationHaki(){
-  isObservationHaki = !isObservationHaki;
-  const statusEl = document.getElementById('haki-status');
-  if(isObservationHaki){
-    statusEl.style.display='block'; document.getElementById('status').textContent='Haki Quan Sát: BẬT (Người chơi = ĐỎ)';
-    scene.background = new THREE.Color(0x0a0a18); scene.fog = new THREE.Fog(0x0a0a18,80,900); ambientLight.intensity=0.18;
-    people.forEach(p=>{if(!p.userData.alive)return; p.traverse(c=>{if(c.isMesh){c.userData.origMat=c.material; c.material=new THREE.MeshBasicMaterial({color:0x00ff55,transparent:true,opacity:0.95,depthTest:false});}});});
-    cars.forEach(c=>{if(!c.userData.alive)return; c.traverse(m=>{if(m.isMesh){m.userData.origMat=m.material; m.material=new THREE.MeshBasicMaterial({color:0x00ff55,transparent:true,opacity:0.95,depthTest:false});}});});
-  } else {
-    statusEl.style.display='none'; document.getElementById('status').textContent='Haki Quan Sát: TẮT';
-    scene.background = originalBackground.clone(); scene.fog = originalFog.clone(); ambientLight.intensity=originalAmbient;
-    people.forEach(p=>p.traverse(c=>{if(c.isMesh&&c.userData.origMat){c.material=c.userData.origMat; delete c.userData.origMat;}}));
-    cars.forEach(c=>c.traverse(m=>{if(m.isMesh&&m.userData.origMat){m.material=m.userData.origMat; delete m.userData.origMat;}}));
+function setMobHakiGlow(m,on){
+  if(!m.mesh||!m.alive) return;
+  if(on&&!m.hakiGlow){
+    m.origMats=[]; m.mesh.traverse(c=>{ if(c.isMesh){ m.origMats.push({mesh:c, mat:c.material}); c.material=new THREE.MeshBasicMaterial({color:0x00ff55, transparent:true, opacity:0.92, depthTest:false}); } });
+    m.hakiGlow=true;
+  } else if(!on&&m.hakiGlow){
+    if(m.origMats){ m.origMats.forEach(o=>{ o.mesh.material=o.mat; }); m.origMats=null; }
+    m.hakiGlow=false;
   }
-  // Người chơi khác hiện ĐỎ khi Haki bật
+}
+function toggleObservationHaki(){
+  isObservationHaki=!isObservationHaki;
+  const statusEl=document.getElementById('haki-status');
+  if(isObservationHaki){
+    statusEl.style.display='block'; document.getElementById('status').textContent='Haki Quan Sát: BẬT (Người chơi = ĐỎ • Quái ≤500u xanh)';
+    scene.fog=new THREE.FogExp2(0x0a0a18,0.0012); hemiLight.intensity=0.2;
+  } else {
+    statusEl.style.display='none'; document.getElementById('status').textContent='Haki Quan Sát: TẮT • '+DAY_PHASES[currentPhaseIdx].name;
+    monsters.forEach(m=>setMobHakiGlow(m,false));
+  }
   updateAllOthersHakiColor();
 }
 
 function createHero(){
-  if(currentHero && currentHero.userData.alive) return;
-  const hero = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.23,0.26,0.72,8), new THREE.MeshLambertMaterial({color:0x2244ff})); body.position.y=0.88; hero.add(body);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.23,8,8), new THREE.MeshLambertMaterial({color:0xffdbac})); head.position.y=1.45; hero.add(head);
-  const cape = new THREE.Mesh(new THREE.BoxGeometry(0.95,1.3,0.09), new THREE.MeshLambertMaterial({color:0xff0000})); cape.position.set(0,1.05,-0.38); hero.add(cape);
-  const eyeMat = new THREE.MeshBasicMaterial({color:0x00ffff});
-  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.045,6,6), eyeMat); eyeL.position.set(-0.09,1.48,0.19); hero.add(eyeL);
-  const eyeR = eyeL.clone(); eyeR.position.x=0.09; hero.add(eyeR);
-  const ang = Math.random()*Math.PI*2, dist = 20+Math.random()*10;
+  if(currentHero&&currentHero.userData.alive) return;
+  const hero=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.27,0.75,10), makeToonMat(0x2244ff)); body.position.y=0.9; body.castShadow=true; hero.add(body);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.24,10,10), makeToonMat(0xffdbac)); head.position.y=1.48; hero.add(head);
+  const cape=new THREE.Mesh(new THREE.BoxGeometry(1.0,1.35,0.1), makeToonMat(0xff0000)); cape.position.set(0,1.08,-0.4); hero.add(cape);
+  const eyeMat=new THREE.MeshBasicMaterial({color:0x00ffff});
+  const eyeL=new THREE.Mesh(new THREE.SphereGeometry(0.05,6,6),eyeMat); eyeL.position.set(-0.09,1.52,0.2); hero.add(eyeL);
+  const eyeR=eyeL.clone(); eyeR.position.x=0.09; hero.add(eyeR);
+  const ang=Math.random()*Math.PI*2, dist=20+Math.random()*10;
   hero.position.set(player.position.x+Math.sin(ang)*dist, 0, player.position.z+Math.cos(ang)*dist);
-  const baseHP = 40 + playerLevel * 12;
-  hero.userData = {speed:0.22+playerLevel*0.01, attackTimer:1.8, type:'hero', alive:true, health:baseHP};
-  scene.add(hero); currentHero = hero;
-  document.getElementById('hero-status').style.display='block';
-  document.getElementById('hero-hp').textContent = Math.floor(baseHP);
+  const baseHP=40+playerLevel*12;
+  hero.userData={speed:0.22+playerLevel*0.01, attackTimer:1.8, type:'hero', alive:true, health:baseHP};
+  scene.add(hero); currentHero=hero;
+  document.getElementById('hero-status').style.display='block'; document.getElementById('hero-hp').textContent=Math.floor(baseHP);
   document.getElementById('status').textContent=`SIÊU ANH HÙNG XUẤT HIỆN! (${Math.floor(baseHP)} HP)`;
 }
 function updateHeroes(dt){
-  if(!currentHero || !currentHero.userData.alive) return;
-  const h = currentHero;
-  const toP = player.position.clone().sub(h.position); toP.y=0;
-  const dist = toP.length();
-  let blockedByWall = false;
-  const moveDir = toP.clone().normalize();
-  const nextPos = h.position.clone().add(moveDir.multiplyScalar(h.userData.speed));
-  for(const w of earthWalls){if(Math.abs(nextPos.x-w.mesh.position.x)<5 && Math.abs(nextPos.z-w.mesh.position.z)<5){blockedByWall=true;break;}}
-  if(dist>2.8 && !blockedByWall){h.position.add(moveDir.multiplyScalar(h.userData.speed)); h.lookAt(player.position.x,h.position.y,player.position.z);}
-  h.userData.attackTimer -= dt;
-  if(h.userData.attackTimer<=0 && dist<50){
-    h.userData.attackTimer = 1.6+Math.random()*0.7;
-    const dir = player.position.clone().sub(h.position).normalize();
-    const bullet = new THREE.Mesh(new THREE.SphereGeometry(0.28,8,8), new THREE.MeshBasicMaterial({color:0x00ffff}));
-    bullet.position.copy(h.position); bullet.position.y=1.35; scene.add(bullet);
-    effects.push({mesh:bullet,life:85,type:'heroBullet',dir:dir});
+  if(!currentHero||!currentHero.userData.alive) return;
+  const h=currentHero, toP=player.position.clone().sub(h.position); toP.y=0; const dist=toP.length();
+  let blockedByWall=false;
+  const moveDir=toP.clone().normalize(), nextPos=h.position.clone().add(moveDir.multiplyScalar(h.userData.speed));
+  for(const w of earthWalls){ if(Math.abs(nextPos.x-w.mesh.position.x)<5&&Math.abs(nextPos.z-w.mesh.position.z)<5){ blockedByWall=true; break; } }
+  if(dist>2.8&&!blockedByWall){ h.position.add(moveDir.multiplyScalar(h.userData.speed)); h.lookAt(player.position.x,h.position.y,player.position.z); }
+  h.userData.attackTimer-=dt;
+  if(h.userData.attackTimer<=0&&dist<50){
+    h.userData.attackTimer=1.6+Math.random()*0.7;
+    const dir=player.position.clone().sub(h.position).normalize();
+    const bullet=new THREE.Mesh(new THREE.SphereGeometry(0.3,8,8), new THREE.MeshBasicMaterial({color:0x00ffff}));
+    bullet.position.copy(h.position); bullet.position.y=1.4; scene.add(bullet);
+    effects.push({mesh:bullet, life:85, type:'heroBullet', dir});
   }
 }
 function damageHero(amount){
-  if(!currentHero || !currentHero.userData.alive) return;
-  currentHero.userData.health -= amount;
-  document.getElementById('hero-hp').textContent = Math.max(0,Math.floor(currentHero.userData.health));
+  if(!currentHero||!currentHero.userData.alive) return;
+  currentHero.userData.health-=amount;
+  document.getElementById('hero-hp').textContent=Math.max(0,Math.floor(currentHero.userData.health));
   if(currentHero.userData.health<=0){
     currentHero.userData.alive=false; createExplosion(currentHero.position.clone());
     scene.remove(currentHero); currentHero=null;
     document.getElementById('hero-status').style.display='none';
-    document.getElementById('status').textContent='Đã đánh bại Siêu Anh Hùng! +80 EXP';
-    addExp(80);
+    document.getElementById('status').textContent='Đã đánh bại Siêu Anh Hùng! +80 EXP'; addExp(80);
   }
 }
 
 function isBlockedByWall(origin,dir,range){
-  const ray = new THREE.Raycaster(origin,dir,0,range);
-  return ray.intersectObjects(earthWalls.map(w=>w.mesh),false).length>0;
+  return new THREE.Raycaster(origin,dir,0,range).intersectObjects(earthWalls.map(w=>w.mesh),false).length>0;
 }
 function damageRay(origin,dir,range,dmg){
   if(isBlockedByWall(origin,dir,range)) return;
-  dmg *= damageMult;
-  if(currentHero && currentHero.userData.alive){
-    const toHero = currentHero.position.clone().sub(origin);
-    if(toHero.length()<range && toHero.normalize().dot(dir)>0.82) damageHero(5+playerLevel*0.4);
+  dmg*=damageMult;
+  if(currentHero&&currentHero.userData.alive){
+    const toHero=currentHero.position.clone().sub(origin);
+    if(toHero.length()<range&&toHero.normalize().dot(dir)>0.82) damageHero(5+playerLevel*0.4);
   }
-  const ray = new THREE.Raycaster(origin,dir,0,range);
-  const bHits = ray.intersectObjects(buildings,true);
-  if(bHits.length){
-    let t = bHits[0].object;
-    while(t.parent && t.parent!==scene){if(t.userData && t.userData.health!==undefined) break; t=t.parent;}
-    if(t.userData && t.userData.health!==undefined){
-      t.userData.health -= dmg*(fruitAwakened?2.3:1)*destroyMult;
-      if(t.userData.body) t.userData.body.material.color.setHex(0xcc3333);
-      if(t.userData.health<=0) destroyBuilding(t);
-    }
-  }
-  const cHits = ray.intersectObjects(cars,true);
+  const ray=new THREE.Raycaster(origin,dir,0,range);
+  const cHits=ray.intersectObjects(cars,true);
   if(cHits.length){
-    let car = cHits[0].object;
-    while(car.parent && car.parent!==scene){if(car.userData && car.userData.alive!==undefined) break; car=car.parent;}
-    if(car.userData && car.userData.alive){
-      car.userData.alive=false; createExplosion(car.position.clone());
-      dollars+=2; updateDollar(); addExp(22);
-      scene.remove(car); const idx=cars.indexOf(car); if(idx>-1) cars.splice(idx,1);
-      createHero();
-    }
+    let car=cHits[0].object;
+    while(car.parent&&car.parent!==scene){ if(car.userData&&car.userData.alive!==undefined) break; car=car.parent; }
+    if(car.userData&&car.userData.alive){ car.userData.alive=false; createExplosion(car.position.clone()); dollars+=2; updateDollar(); addExp(22); scene.remove(car); const idx=cars.indexOf(car); if(idx>-1) cars.splice(idx,1); createHero(); }
   }
-  const pHits = ray.intersectObjects(people,true);
+  const pHits=ray.intersectObjects(people,true);
   if(pHits.length){
-    let person = pHits[0].object;
-    while(person.parent && person.parent!==scene){if(person.userData && person.userData.alive!==undefined) break; person=person.parent;}
-    if(person.userData && person.userData.alive){
-      person.userData.alive=false; dollars+=1; updateDollar(); addExp(12);
-      scene.remove(person); const idx=people.indexOf(person); if(idx>-1) people.splice(idx,1);
-      createHero();
-    }
+    let person=pHits[0].object;
+    while(person.parent&&person.parent!==scene){ if(person.userData&&person.userData.alive!==undefined) break; person=person.parent; }
+    if(person.userData&&person.userData.alive){ person.userData.alive=false; dollars+=1; updateDollar(); addExp(12); scene.remove(person); const idx=people.indexOf(person); if(idx>-1) people.splice(idx,1); createHero(); }
   }
-  // PvP
-  tryDamageOtherPlayers(origin, dir, range, 0.2);
+  const mid=origin.clone().add(dir.clone().multiplyScalar(Math.min(range,12)));
+  damageMonsters(mid,4,dmg); damageMonsters(origin.clone().add(dir.clone().multiplyScalar(Math.min(range*0.5,8))),5,dmg);
+  tryDamageOtherPlayers(origin, dir, range);
 }
 function damageArea(center,radius,dmg){
-  dmg *= damageMult;
-  if(currentHero && currentHero.userData.alive && currentHero.position.distanceTo(center)<radius+1.5) damageHero(5+playerLevel*0.4);
-  const finalDmg = dmg*(fruitAwakened?2.3:1)*destroyMult;
-  for(let i=buildings.length-1;i>=0;i--){
-    if(buildings[i].position.distanceTo(center)<radius){
-      buildings[i].userData.health -= finalDmg;
-      if(buildings[i].userData.health<=0) destroyBuilding(buildings[i]);
-    }
-  }
+  dmg*=damageMult;
+  if(currentHero&&currentHero.userData.alive&&currentHero.position.distanceTo(center)<radius+1.5) damageHero(5+playerLevel*0.4);
+  const finalDmg=dmg*(fruitAwakened?2.3:1)*destroyMult;
   for(let i=cars.length-1;i>=0;i--){
-    if(cars[i].position.distanceTo(center)<radius && cars[i].userData.alive){
-      cars[i].userData.alive=false; createExplosion(cars[i].position.clone());
-      dollars+=2; updateDollar(); addExp(22);
-      scene.remove(cars[i]); cars.splice(i,1); createHero();
-    }
+    if(cars[i].position.distanceTo(center)<radius&&cars[i].userData.alive){ cars[i].userData.alive=false; createExplosion(cars[i].position.clone()); dollars+=2; updateDollar(); addExp(22); scene.remove(cars[i]); cars.splice(i,1); createHero(); }
   }
   for(let i=people.length-1;i>=0;i--){
-    if(people[i].position.distanceTo(center)<radius && people[i].userData.alive){
-      people[i].userData.alive=false; dollars+=1; updateDollar(); addExp(12);
-      scene.remove(people[i]); people.splice(i,1); createHero();
-    }
+    if(people[i].position.distanceTo(center)<radius&&people[i].userData.alive){ people[i].userData.alive=false; dollars+=1; updateDollar(); addExp(12); scene.remove(people[i]); people.splice(i,1); createHero(); }
   }
-  // PvP area
-  tryDamageOtherPlayers(center, null, radius, 0.2);
+  damageMonsters(center,radius,finalDmg);
+  tryDamageOtherPlayers(center, null, radius);
 }
-function destroyBuilding(t){
-  dollars+=3; updateDollar();
-  addExp(45+Math.floor(t.userData.height*0.6));
-  destroyedBuildings.push({pos:t.position.clone(),w:t.userData.origW,h:t.userData.origH,d:t.userData.origD,color:t.userData.origColor,timer:30});
-  scene.remove(t); const idx=buildings.indexOf(t); if(idx>-1) buildings.splice(idx,1);
-  createHero();
-}
-function updateDollar(){document.getElementById('dollar-text').textContent=dollars;}
+function updateDollar(){ document.getElementById('dollar-text').textContent=dollars; }
 
 let isCharging=false, isCharged=false, chargeTime=0, hpRegenTimer=0;
 const keys={}; let isLocked=false; let camYaw=0, camPitch=0.15; const moveSpeed=0.34;
 let isMobileMode=false, joyDX=0, joyDY=0, touchLookId=null, lastTouchX=0, lastTouchY=0;
 
-function isTouchDevice(){return ('ontouchstart' in window)||(navigator.maxTouchPoints>0);}
+function isTouchDevice(){ return ('ontouchstart' in window)||(navigator.maxTouchPoints>0); }
 function toggleMobileMode(){
   isMobileMode=!isMobileMode;
   document.getElementById('mobile-controls').style.display=isMobileMode?'block':'none';
   document.getElementById('mode-indicator').style.display=isMobileMode?'block':'none';
   document.getElementById('btn-toggle-mobile').textContent=isMobileMode?'💻 Máy tính':'📱 Điện thoại';
-  if(isMobileMode && document.pointerLockElement) document.exitPointerLock();
+  if(isMobileMode&&document.pointerLockElement) document.exitPointerLock();
 }
-if(isTouchDevice()) setTimeout(()=>{if(!isMobileMode) toggleMobileMode();},600);
-document.getElementById('btn-toggle-mobile').addEventListener('click',e=>{e.preventDefault();toggleMobileMode();});
-document.getElementById('btn-toggle-mobile').addEventListener('touchstart',e=>{e.preventDefault();toggleMobileMode();},{passive:false});
+if(isTouchDevice()) setTimeout(()=>{ if(!isMobileMode) toggleMobileMode(); },600);
+document.getElementById('btn-toggle-mobile').addEventListener('click',e=>{ e.preventDefault(); toggleMobileMode(); });
+document.getElementById('btn-toggle-mobile').addEventListener('touchstart',e=>{ e.preventDefault(); toggleMobileMode(); },{passive:false});
 
 document.addEventListener('keydown',e=>{
   keys[e.code]=true;
-  if(e.code==='KeyQ'){const info=document.getElementById('info'); info.style.display=info.style.display==='none'?'block':'none';}
+  if(e.code==='KeyQ'){ const info=document.getElementById('info'); info.style.display=info.style.display==='none'?'block':'none'; }
   if(e.code==='KeyG') tryTalkNPC();
   if(e.code==='Digit1') eatFruit();
+  if(e.code==='Digit2') toggleMinimap();
+  if(e.code==='Digit3'){
+    if(onBoat){ onBoat=false; document.getElementById('status').textContent='Đã xuống tàu (phím 3)'; }
+    else if(ownedShip&&isInOcean(player.position.x,player.position.z)){ onBoat=true; document.getElementById('status').textContent='Lên tàu: '+ownedShip.name; }
+  }
   if(e.code==='KeyZ') useZ();
   if(e.code==='KeyX') useX();
   if(e.code==='KeyC') useC();
   if(e.code==='KeyV') useV();
   if(e.code==='KeyO') createEarthWall();
   if(e.code==='KeyE') toggleObservationHaki();
-  if(e.code==='Digit0'){
-    if(document.pointerLockElement) document.exitPointerLock();
-    document.getElementById('status').textContent='Đã mở khóa chuột (phím 0)';
-  }
+  if(e.code==='Digit4'&&(e.shiftKey||keys['ShiftLeft']||keys['ShiftRight'])){ dollars+=1000; updateDollar(); document.getElementById('status').textContent='+1000$ (Shift+4)!'; }
+  // Shift+5: Teleport đến NPC bán trái
+  if(e.code==='Digit5'&&(e.shiftKey||keys['ShiftLeft']||keys['ShiftRight'])){ teleportToFruitNPC(); }
+  if(e.code==='Digit0'){ if(document.pointerLockElement) document.exitPointerLock(); document.getElementById('status').textContent='Đã mở khóa chuột (phím 0)'; }
 });
 document.addEventListener('keyup',e=>keys[e.code]=false);
 
 document.body.addEventListener('click',()=>{
-  if(!isMobileMode && document.getElementById('shop-ui').style.display!=='block' && document.getElementById('npc-dialog').style.display!=='block')
-    document.body.requestPointerLock();
+  if(!isMobileMode&&document.getElementById('shop-ui').style.display!=='block'&&document.getElementById('npc-dialog').style.display!=='block') document.body.requestPointerLock();
 });
-document.addEventListener('pointerlockchange',()=>{
-  isLocked=!!document.pointerLockElement;
-  if(!isMobileMode) document.getElementById('status').textContent=isLocked?'Đang chơi':'Click để khóa chuột';
-});
-document.addEventListener('mousemove',e=>{
-  if(!isLocked||isMobileMode) return;
-  camYaw-=e.movementX*0.0023; camPitch+=e.movementY*0.0021;
-  camPitch=Math.max(-1.57,Math.min(1.57,camPitch));
-});
-document.addEventListener('wheel',e=>{
-  if(!isLocked||isMobileMode) return;
-  e.preventDefault(); zoomFactor+=e.deltaY>0?0.09:-0.09;
-  zoomFactor=Math.max(0.4,Math.min(2.6,zoomFactor));
-},{passive:false});
+document.addEventListener('pointerlockchange',()=>{ isLocked=!!document.pointerLockElement; if(!isMobileMode) document.getElementById('status').textContent=isLocked?'Đang chơi':'Click để khóa chuột'; });
+document.addEventListener('mousemove',e=>{ if(!isLocked||isMobileMode) return; camYaw-=e.movementX*0.0023; camPitch+=e.movementY*0.0021; camPitch=Math.max(-1.57,Math.min(1.57,camPitch)); });
+document.addEventListener('wheel',e=>{ if(!isLocked||isMobileMode) return; e.preventDefault(); zoomFactor+=e.deltaY>0?0.09:-0.09; zoomFactor=Math.max(0.4,Math.min(2.6,zoomFactor)); },{passive:false});
 
 const joyZone=document.getElementById('joy-zone'), joyStick=document.getElementById('joy-stick'), joyBase=document.getElementById('joy-base');
 function handleJoy(e){
   if(!isMobileMode) return; e.preventDefault();
-  const touch=e.changedTouches[0];
-  const rect=joyBase.getBoundingClientRect();
+  const touch=e.changedTouches[0], rect=joyBase.getBoundingClientRect();
   const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
   let dx=touch.clientX-cx, dy=touch.clientY-cy;
-  const max=45, len=Math.sqrt(dx*dx+dy*dy);
-  if(len>max){dx=dx/len*max; dy=dy/len*max;}
-  joyStick.style.left=(40+dx)+'px'; joyStick.style.top=(40+dy)+'px';
+  const max=48, len=Math.sqrt(dx*dx+dy*dy);
+  if(len>max){ dx=dx/len*max; dy=dy/len*max; }
+  joyStick.style.left=(41+dx)+'px'; joyStick.style.top=(41+dy)+'px';
   joyDX=dx/max; joyDY=dy/max;
 }
 joyZone.addEventListener('touchstart',handleJoy,{passive:false});
 joyZone.addEventListener('touchmove',handleJoy,{passive:false});
-joyZone.addEventListener('touchend',()=>{joyStick.style.left='40px';joyStick.style.top='40px';joyDX=0;joyDY=0;});
-document.addEventListener('touchstart',e=>{
-  if(!isMobileMode) return;
-  for(let t of e.changedTouches){if(t.clientX>window.innerWidth*0.4){touchLookId=t.identifier; lastTouchX=t.clientX; lastTouchY=t.clientY;}}
-},{passive:false});
+joyZone.addEventListener('touchend',()=>{ joyStick.style.left='41px'; joyStick.style.top='41px'; joyDX=0; joyDY=0; });
+document.addEventListener('touchstart',e=>{ if(!isMobileMode) return; for(let t of e.changedTouches){ if(t.clientX>window.innerWidth*0.4){ touchLookId=t.identifier; lastTouchX=t.clientX; lastTouchY=t.clientY; } } },{passive:false});
 document.addEventListener('touchmove',e=>{
   if(!isMobileMode||touchLookId===null) return;
-  for(let t of e.changedTouches){if(t.identifier===touchLookId){
-    camYaw-=(t.clientX-lastTouchX)*0.005; camPitch+=(t.clientY-lastTouchY)*0.004;
-    camPitch=Math.max(-1.57,Math.min(1.57,camPitch));
-    lastTouchX=t.clientX; lastTouchY=t.clientY;
-  }}
+  for(let t of e.changedTouches){ if(t.identifier===touchLookId){ camYaw-=(t.clientX-lastTouchX)*0.005; camPitch+=(t.clientY-lastTouchY)*0.004; camPitch=Math.max(-1.57,Math.min(1.57,camPitch)); lastTouchX=t.clientX; lastTouchY=t.clientY; } }
 },{passive:false});
-document.addEventListener('touchend',e=>{for(let t of e.changedTouches){if(t.identifier===touchLookId) touchLookId=null;}});
+document.addEventListener('touchend',e=>{ for(let t of e.changedTouches){ if(t.identifier===touchLookId) touchLookId=null; } });
 
 function bindMobileBtn(id,downFn,upFn){
   const el=document.getElementById(id);
-  el.addEventListener('touchstart',e=>{e.preventDefault();el.classList.add('active');downFn();},{passive:false});
-  el.addEventListener('touchend',e=>{e.preventDefault();el.classList.remove('active');if(upFn)upFn();},{passive:false});
+  el.addEventListener('touchstart',e=>{ e.preventDefault(); el.classList.add('active'); downFn(); },{passive:false});
+  el.addEventListener('touchend',e=>{ e.preventDefault(); el.classList.remove('active'); if(upFn) upFn(); },{passive:false});
 }
 bindMobileBtn('btn-jump',()=>keys['Space']=true,()=>keys['Space']=false);
 bindMobileBtn('btn-down',()=>keys['ShiftLeft']=true,()=>keys['ShiftLeft']=false);
@@ -1122,71 +1204,59 @@ bindMobileBtn('btn-c',()=>useC());
 bindMobileBtn('btn-v',()=>useV());
 bindMobileBtn('btn-eat',()=>eatFruit());
 bindMobileBtn('btn-npc',()=>tryTalkNPC());
-bindMobileBtn('btn-skill1',()=>{if(!isCharged)startCharge();else fireThunder();});
-bindMobileBtn('btn-skill2',()=>{
-  if(!isGiant&&!isDragon) toggleGiant();
-  else if(isGiant&&!isDragon){toggleGiant();toggleDragon();}
-  else if(isDragon){toggleDragon();breathFire();}
-});
+bindMobileBtn('btn-skill1',()=>{ if(!isCharged) startCharge(); else fireThunder(); });
+bindMobileBtn('btn-skill2',()=>{ if(!isGiant&&!isDragon) toggleGiant(); else if(isGiant&&!isDragon){ toggleGiant(); toggleDragon(); } else if(isDragon){ toggleDragon(); breathFire(); } });
 bindMobileBtn('btn-wall',()=>createEarthWall());
 bindMobileBtn('btn-haki',()=>toggleObservationHaki());
 
 const lasers=[]; let punchCD=0;
 function createExplosion(pos){
-  const fire=new THREE.Mesh(new THREE.SphereGeometry(2,8,8),new THREE.MeshBasicMaterial({color:0xff4400,transparent:true,opacity:0.85}));
-  fire.position.copy(pos); fire.position.y+=1.2; scene.add(fire);
-  effects.push({mesh:fire,life:35,type:'explode'});
+  const fire=new THREE.Mesh(new THREE.SphereGeometry(2.2,10,10), new THREE.MeshBasicMaterial({color:0xff4400, transparent:true, opacity:0.88}));
+  fire.position.copy(pos); fire.position.y+=1.3; scene.add(fire); effects.push({mesh:fire, life:35, type:'explode'});
+  spawnParticles(pos,0xff6600,14,0.2,22,0.3);
 }
 function createLightningBolt(from,to,color=0xffffff){
   const points=[];
-  for(let i=0;i<=7;i++){const t=i/7; const p=from.clone().lerp(to,t); if(i>0&&i<7){p.x+=(Math.random()-0.5)*3.5;p.z+=(Math.random()-0.5)*3.5;} points.push(p);}
+  for(let i=0;i<=8;i++){ const t=i/8; const p=from.clone().lerp(to,t); if(i>0&&i<8){ p.x+=(Math.random()-0.5)*3.8; p.z+=(Math.random()-0.5)*3.8; } points.push(p); }
   const geo=new THREE.BufferGeometry().setFromPoints(points);
-  const line=new THREE.Line(geo,new THREE.LineBasicMaterial({color,transparent:true,opacity:0.85}));
-  scene.add(line); lightnings.push({mesh:line,life:9});
+  const line=new THREE.Line(geo, new THREE.LineBasicMaterial({color, transparent:true, opacity:0.9}));
+  scene.add(line); lightnings.push({mesh:line, life:10});
 }
 function shootLaser(){
   const dir=new THREE.Vector3(); camera.getWorldDirection(dir);
   const eyePos=player.position.clone(); eyePos.y+=(isDragon?1.6:1.3)*(isGiant?10:1);
-  if(isBlockedByWall(eyePos,dir,250)){document.getElementById('status').textContent='Laser bị tường chặn!';return;}
-  const laser=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,70,5),new THREE.MeshBasicMaterial({color:0xff0000,transparent:true,opacity:0.9}));
-  laser.position.copy(eyePos).add(dir.clone().multiplyScalar(35));
-  laser.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir);
-  scene.add(laser); lasers.push({mesh:laser,life:12});
-  damageRay(eyePos,dir,250,55);
+  if(isBlockedByWall(eyePos,dir,250)){ document.getElementById('status').textContent='Laser bị tường chặn!'; return; }
+  const laser=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,72,6), new THREE.MeshBasicMaterial({color:0xff2222, transparent:true, opacity:0.92}));
+  laser.position.copy(eyePos).add(dir.clone().multiplyScalar(36)); laser.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir);
+  scene.add(laser); lasers.push({mesh:laser, life:12}); damageRay(eyePos,dir,250,55);
 }
 function punch(){
   if(punchCD>0) return; punchCD=16;
   const dir=new THREE.Vector3(); camera.getWorldDirection(dir);
   const origin=player.position.clone(); origin.y+=1.0*(isGiant?10:1);
-  damageRay(origin,dir,8*(isGiant?2:1),120);
+  damageRay(origin,dir,8*(isGiant?2:1),120); spawnParticles(origin.clone().add(dir.clone().multiplyScalar(3)),0xffffff,6,0.12,12);
 }
-function startCharge(){if(isCharging||isCharged)return; isCharging=true; chargeTime=0; document.getElementById('status').textContent='Đang tụ sấm...';}
+function startCharge(){ if(isCharging||isCharged) return; isCharging=true; chargeTime=0; document.getElementById('status').textContent='Đang tụ sấm...'; }
 function fireThunder(){
-  if(!isCharged) return; isCharged=false;
-  document.getElementById('charge').style.display='none';
-  document.getElementById('status').textContent='SẤM SÉT!!!';
+  if(!isCharged) return; isCharged=false; document.getElementById('charge').style.display='none'; document.getElementById('status').textContent='SẤM SÉT!!!';
   const dir=new THREE.Vector3(); camera.getWorldDirection(dir);
   const start=player.position.clone(); start.y+=1.5*(isGiant?10:1);
-  for(let i=0;i<10;i++){
-    const offset=new THREE.Vector3((Math.random()-0.5)*4,(Math.random()-0.5)*3,(Math.random()-0.5)*4);
-    createLightningBolt(start.clone().add(offset),start.clone().add(dir.clone().multiplyScalar(90)).add(offset));
-  }
-  damageArea(start.clone().add(dir.clone().multiplyScalar(25)),32*(isGiant?1.7:1),150);
+  for(let i=0;i<12;i++){ const offset=new THREE.Vector3((Math.random()-0.5)*5,(Math.random()-0.5)*3.5,(Math.random()-0.5)*5); createLightningBolt(start.clone().add(offset), start.clone().add(dir.clone().multiplyScalar(95)).add(offset)); }
+  spawnParticles(start.clone().add(dir.clone().multiplyScalar(20)),0xffff00,20,0.2,25); damageArea(start.clone().add(dir.clone().multiplyScalar(25)),34*(isGiant?1.7:1),155);
 }
 function breathFire(){
-  if(!isDragon){document.getElementById('status').textContent='Chỉ dùng khi là Rồng!';return;}
+  if(!isDragon){ document.getElementById('status').textContent='Chỉ dùng khi là Rồng!'; return; }
   document.getElementById('status').textContent='🔥 PHUN LỬA';
   const dir=new THREE.Vector3(); camera.getWorldDirection(dir);
   const start=player.position.clone(); start.y+=1.5*(isGiant?10:1);
-  for(let i=0;i<16;i++){
-    const fb=new THREE.Mesh(new THREE.SphereGeometry(0.6+Math.random()*0.7,6,6),new THREE.MeshBasicMaterial({color:0xff3300,transparent:true,opacity:0.85}));
-    const offset=new THREE.Vector3((Math.random()-0.5)*3,(Math.random()-0.5)*2,(Math.random()-0.5)*3);
-    fb.position.copy(start).add(dir.clone().multiplyScalar(3+i*1.3)).add(offset);
-    scene.add(fb); effects.push({mesh:fb,life:40,type:'fireball',dir:dir.clone().normalize()});
+  for(let i=0;i<18;i++){
+    const fb=new THREE.Mesh(new THREE.SphereGeometry(0.65+Math.random()*0.7,7,7), new THREE.MeshBasicMaterial({color:0xff3300, transparent:true, opacity:0.88}));
+    const offset=new THREE.Vector3((Math.random()-0.5)*3.2,(Math.random()-0.5)*2.2,(Math.random()-0.5)*3.2);
+    fb.position.copy(start).add(dir.clone().multiplyScalar(3+i*1.25)).add(offset); scene.add(fb); effects.push({mesh:fb, life:42, type:'fireball', dir:dir.clone().normalize()});
   }
-  damageArea(start.clone().add(dir.clone().multiplyScalar(18)),22*(isGiant?1.6:1),100);
+  damageArea(start.clone().add(dir.clone().multiplyScalar(18)),23*(isGiant?1.6:1),105);
 }
-document.addEventListener('mousedown',e=>{if(!isLocked||isMobileMode)return; if(e.button===0)shootLaser(); if(e.button===2)punch();});
+document.addEventListener('mousedown',e=>{ if(!isLocked||isMobileMode) return; if(e.button===0) shootLaser(); if(e.button===2) punch(); });
 document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('keydown',e=>{
   if(e.code==='KeyF') punch();
@@ -1196,104 +1266,188 @@ document.addEventListener('keydown',e=>{
   if(e.code==='KeyU') toggleDragon();
   if(e.code==='KeyI') breathFire();
 });
-function toggleGiant(){
-  isGiant=!isGiant;
-  if(isGiant){player.scale.set(10,10,10); baseFOV=92; document.getElementById('status').textContent='PHÓNG TO x10';}
-  else{player.scale.set(1,1,1); baseFOV=70; document.getElementById('status').textContent='Bình thường';}
-}
+function toggleGiant(){ isGiant=!isGiant; if(isGiant){ player.scale.set(10,10,10); baseFOV=92; document.getElementById('status').textContent='PHÓNG TO x10'; } else { player.scale.set(1,1,1); baseFOV=70; document.getElementById('status').textContent='Bình thường'; } }
 function toggleDragon(){
   isDragon=!isDragon;
-  if(isDragon){buildDragonForm(); document.getElementById('form-status').style.display='block'; document.getElementById('status').textContent='RỒNG KAIDO';}
-  else{buildHumanForm(); document.getElementById('form-status').style.display='none'; document.getElementById('status').textContent='Dạng người';}
-  player.scale.set(isGiant?10:1,isGiant?10:1,isGiant?10:1);
+  if(isDragon){ buildDragonForm(); document.getElementById('form-status').style.display='block'; document.getElementById('status').textContent='RỒNG KAIDO'; }
+  else { buildHumanForm(); document.getElementById('form-status').style.display='none'; document.getElementById('status').textContent='Dạng người'; }
+  player.scale.set(isGiant?10:1, isGiant?10:1, isGiant?10:1);
 }
 
+let nearNPC=null;
 function tryTalkNPC(){
-  const dist=player.position.distanceTo(npc.position);
-  if(dist<6){
-    document.getElementById('npc-dialog').style.display='block';
-    if(document.pointerLockElement) document.exitPointerLock();
-  } else document.getElementById('status').textContent='Lại gần NPC hơn!';
+  nearNPC=null; let best=7;
+  for(const hn of harborNPCs){ const d=player.position.distanceTo(hn.position); if(d<best){ best=d; nearNPC=hn; } }
+  for(const fn of fruitNPCs){ const d=player.position.distanceTo(fn.position); if(d<best){ best=d; nearNPC=fn; } }
+  if(nearNPC){
+    if(nearNPC.type==='boat'){ document.getElementById('npc-text').textContent=`[${nearNPC.islandName}] Bạn muốn mua thuyền đúng chứ?`; document.getElementById('btn-ok').style.display='none'; document.getElementById('btn-buy').textContent='Mua Thuyền'; document.getElementById('btn-buy').style.display=''; }
+    else { document.getElementById('npc-text').textContent=`[${nearNPC.islandName}] Cửa hàng Trái Ác Quỷ! Mua trái nhé?`; document.getElementById('btn-ok').style.display='none'; document.getElementById('btn-buy').textContent='Mua Trái'; document.getElementById('btn-buy').style.display=''; }
+    document.getElementById('npc-dialog').style.display='block'; if(document.pointerLockElement) document.exitPointerLock();
+  } else document.getElementById('status').textContent='Lại gần NPC hơn! (G) — NPC tím = trái, NPC xanh = thuyền';
 }
-document.getElementById('btn-ok').onclick=()=>{
-  document.getElementById('npc-dialog').style.display='none';
-  giveRandomFruit();
-  if(!isMobileMode) document.body.requestPointerLock();
-};
-document.getElementById('btn-buy').onclick=()=>{
-  document.getElementById('npc-dialog').style.display='none';
-  openShop();
-};
-document.getElementById('btn-cancel').onclick=()=>{
-  document.getElementById('npc-dialog').style.display='none';
-  if(!isMobileMode) document.body.requestPointerLock();
-};
+document.getElementById('btn-ok').onclick=()=>{ document.getElementById('npc-dialog').style.display='none'; if(!isMobileMode) document.body.requestPointerLock(); };
+document.getElementById('btn-buy').onclick=()=>{ document.getElementById('npc-dialog').style.display='none'; if(nearNPC&&nearNPC.type==='boat') openBoatShop(); else openShop(); };
+document.getElementById('btn-cancel').onclick=()=>{ document.getElementById('npc-dialog').style.display='none'; document.getElementById('btn-ok').style.display=''; document.getElementById('btn-buy').textContent='Mua Trái'; if(!isMobileMode) document.body.requestPointerLock(); };
 function openShop(){
   if(document.pointerLockElement) document.exitPointerLock();
-  const list=document.getElementById('shop-list');
-  list.innerHTML='';
+  const list=document.getElementById('shop-list'); list.innerHTML='';
   FRUIT_LIST.forEach(f=>{
-    const div=document.createElement('div');
-    div.className='fruit-item';
+    const div=document.createElement('div'); div.className='fruit-item';
     div.innerHTML=`<div><div class="fruit-name">${f.name} <span style="font-size:12px;opacity:0.7">(${f.type})</span></div><div class="fruit-rarity">${f.rarity} • Power ${f.power}</div></div><div class="fruit-price">${f.price}$</div>`;
-    div.onclick=()=>buySpecificFruit(f);
-    list.appendChild(div);
+    div.onclick=()=>buySpecificFruit(f); list.appendChild(div);
   });
   document.getElementById('shop-ui').style.display='block';
 }
-function closeShop(){
-  document.getElementById('shop-ui').style.display='none';
-  if(!isMobileMode) document.body.requestPointerLock();
-}
+function closeShop(){ document.getElementById('shop-ui').style.display='none'; if(!isMobileMode) document.body.requestPointerLock(); }
 document.getElementById('shop-close').onclick=closeShop;
 
-function getGroundHeight(x,z){
-  let maxH=0;
-  for(const b of buildings){
-    const dx=Math.abs(x-b.position.x), dz=Math.abs(z-b.position.z);
-    if(dx<b.userData.halfW+0.7 && dz<b.userData.halfD+0.7) maxH=Math.max(maxH,b.userData.height);
-  }
-  return maxH;
+// ==================== THUYỀN ====================
+const SHIP_LIST=[
+  {id:0,name:'Xuồng Gỗ',price:2,speed:0.45,scale:1.0,color:0x8B5A2B},
+  {id:1,name:'Thuyền Buồm Nhỏ',price:4,speed:0.55,scale:1.15,color:0xc4a35a},
+  {id:2,name:'Tàu Cá',price:6,speed:0.65,scale:1.3,color:0x4a90d9},
+  {id:3,name:'Tàu Buôn',price:8,speed:0.75,scale:1.45,color:0x2f9e44},
+  {id:4,name:'Chiến Thuyền',price:10,speed:0.88,scale:1.6,color:0xe03131},
+  {id:5,name:'Tàu Hải Tặc',price:12,speed:1.0,scale:1.8,color:0x5c3a1e},
+  {id:6,name:'Tàu Hải Quân',price:14,speed:1.15,scale:2.0,color:0x1a4a8a},
+  {id:7,name:'Siêu Tàu Nhanh',price:16,speed:1.35,scale:2.2,color:0x00bcd4},
+  {id:8,name:'Tàu Rồng Biển',price:18,speed:1.5,scale:2.5,color:0x7b2d8e},
+  {id:9,name:'Huyền Thoại Going Merry',price:20,speed:1.7,scale:2.8,color:0xffd700}
+];
+let ownedShip=null, onBoat=false, boatMesh=null;
+
+function openBoatShop(){
+  if(document.pointerLockElement) document.exitPointerLock();
+  const list=document.getElementById('boat-shop-list'); list.innerHTML='';
+  SHIP_LIST.forEach(s=>{
+    const div=document.createElement('div'); div.className='fruit-item';
+    div.innerHTML=`<div><div class="fruit-name">${s.name}</div><div class="fruit-rarity">Tốc độ ${s.speed.toFixed(2)} • Size x${s.scale}</div></div><div class="fruit-price">${s.price}$</div>`;
+    div.onclick=()=>buyShip(s); list.appendChild(div);
+  });
+  document.getElementById('boat-shop-ui').style.display='block';
 }
+function closeBoatShop(){ document.getElementById('boat-shop-ui').style.display='none'; document.getElementById('btn-ok').style.display=''; document.getElementById('btn-buy').textContent='Mua Trái'; if(!isMobileMode) document.body.requestPointerLock(); }
+document.getElementById('boat-shop-close').onclick=closeBoatShop;
+
+function buyShip(ship){
+  if(dollars<ship.price){ document.getElementById('status').textContent=`Không đủ tiền! Cần ${ship.price}$`; return; }
+  dollars-=ship.price; updateDollar(); ownedShip=ship;
+  if(boatMesh) scene.remove(boatMesh);
+  boatMesh=new THREE.Group();
+  const hull=new THREE.Mesh(new THREE.BoxGeometry(3.5*ship.scale,1.2*ship.scale,8*ship.scale), makeToonMat(ship.color)); hull.position.y=0.6*ship.scale; boatMesh.add(hull);
+  const mast=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,6*ship.scale,6), makeToonMat(0x5c3a1e)); mast.position.y=3.5*ship.scale; boatMesh.add(mast);
+  const sail=new THREE.Mesh(new THREE.PlaneGeometry(3*ship.scale,4*ship.scale), new THREE.MeshBasicMaterial({color:0xffffff, side:THREE.DoubleSide})); sail.position.set(0,3.5*ship.scale,0); boatMesh.add(sail);
+  boatMesh.position.copy(player.position); boatMesh.position.y=0; scene.add(boatMesh); onBoat=true; closeBoatShop();
+  document.getElementById('status').textContent=`Đã mua ${ship.name}! Đi trên biển sẽ nhanh hơn.`;
+}
+
+// ==================== MINIMAP ====================
+let minimapVisible=false;
+const minimapCanvas=document.getElementById('minimap'), minimapCtx=minimapCanvas.getContext('2d');
+function toggleMinimap(){
+  minimapVisible=!minimapVisible;
+  minimapCanvas.style.display=minimapVisible?'block':'none';
+  document.getElementById('minimap-label').style.display=minimapVisible?'block':'none';
+  document.getElementById('btn-toggle-mobile').style.top=minimapVisible?'220px':'12px';
+}
+function drawMinimap(){
+  if(!minimapVisible) return;
+  const ctx=minimapCtx, W=180, H=180;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#0a3a5c'; ctx.fillRect(0,0,W,H);
+  const range=CENTER_DIST*1.8, scale=W/(range*2), cx=W/2, cy=H/2;
+  islands.forEach(isl=>{
+    const ix=cx+isl.x*scale, iy=cy+isl.z*scale, ir=Math.max(4,isl.radius*scale);
+    ctx.beginPath(); ctx.arc(ix,iy,ir,0,Math.PI*2); ctx.fillStyle='#'+new THREE.Color(isl.color).getHexString(); ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+  });
+  const px=cx+player.position.x*scale, py=cy+player.position.z*scale;
+  ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2); ctx.fillStyle='#0ff'; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+}
+
+function getGroundHeight(x,z){
+  let best=-999;
+  for(const p of walkPlatforms){ const dx=x-p.x, dz=z-p.z; if(Math.sqrt(dx*dx+dz*dz)<=p.r) best=Math.max(best,p.h); }
+  if(best>-900) return best;
+  for(const isl of islands){ const dx=x-isl.x, dz=z-isl.z; if(Math.sqrt(dx*dx+dz*dz)<=isl.radius) return LAND_SURFACE+0.05; }
+  return SWIM_FEET_Y;
+}
+function isInOcean(x,z){
+  for(const p of walkPlatforms){ const dx=x-p.x, dz=z-p.z; if(Math.sqrt(dx*dx+dz*dz)<=p.r) return false; }
+  for(const isl of islands){ const dx=x-isl.x, dz=z-isl.z; if(Math.sqrt(dx*dx+dz*dz)<=isl.radius) return false; }
+  return true;
+}
+
+// ==================== TELEPORT NPC TRÁI (Shift+5) ====================
+function getCurrentIsland(){
+  for(const isl of islands){ const dx=player.position.x-isl.x, dz=player.position.z-isl.z; if(Math.sqrt(dx*dx+dz*dz)<=isl.radius) return isl; }
+  return null;
+}
+function teleportToFruitNPC(){
+  const currentIsland=getCurrentIsland();
+  if(!currentIsland){ document.getElementById('status').textContent='Bạn đang ở ngoài biển! Hãy lên đảo trước rồi nhấn Shift+5'; return; }
+  const npc=fruitNPCs.find(n=>n.islandId===currentIsland.id);
+  if(!npc){ document.getElementById('status').textContent='Không tìm thấy NPC bán trái trên đảo này!'; return; }
+  player.position.set(npc.position.x+3, LAND_SURFACE+2, npc.position.z);
+  velocityY=0; onGround=true; isFlying=false; spaceHoldTime=0;
+  const dx=npc.position.x-player.position.x, dz=npc.position.z-player.position.z;
+  camYaw=Math.atan2(dx,dz);
+  document.getElementById('status').textContent=`Đã dịch chuyển đến NPC bán trái tại ${currentIsland.name}! (Shift+5)`;
+}
+
 function resolveCollision(){
-  const r=isGiant?5.0:(isDragon?1.4:0.45);
-  for(const b of buildings){
-    const dx=player.position.x-b.position.x, dz=player.position.z-b.position.z;
-    const hw=b.userData.halfW+r, hd=b.userData.halfD+r;
-    if(Math.abs(dx)<hw && Math.abs(dz)<hd){
-      const roof=b.userData.height;
-      if(player.position.y<roof+1.2 && player.position.y>roof-1.5){player.position.y=roof; velocityY=0; onGround=true; isFlying=false;}
-      else if(player.position.y<roof){
-        if(hw-Math.abs(dx)<hd-Math.abs(dz)) player.position.x+=(dx>0?1:-1)*(hw-Math.abs(dx));
-        else player.position.z+=(dz>0?1:-1)*(hd-Math.abs(dz));
-      }
+  const gh=getGroundHeight(player.position.x,player.position.z);
+  if(player.position.y<gh&&!isFlying){ player.position.y=gh; velocityY=0; onGround=true; }
+  const pr=isGiant?4:(isDragon?1.2:0.5);
+  for(const c of colliders){
+    const dx=player.position.x-c.x, dz=player.position.z-c.z, dist=Math.sqrt(dx*dx+dz*dz), minD=c.r+pr;
+    if(dist<minD&&dist>0.01){ const push=(minD-dist)/dist; player.position.x+=dx*push; player.position.z+=dz*push; }
+  }
+}
+function updateMonsters(dt){
+  for(const m of monsters){
+    if(!m.alive){ m.respawnTimer-=dt; if(m.respawnTimer<=0){ m.alive=true; m.hp=m.maxHp; m.mesh.visible=true; m.mesh.position.set(m.homeX,LAND_SURFACE+1,m.homeZ); m.hakiGlow=false; m.origMats=null; } continue; }
+    const toP=player.position.clone().sub(m.mesh.position); toP.y=0; const dist=toP.length();
+    if(isObservationHaki) setMobHakiGlow(m,dist<=500); else if(m.hakiGlow) setMobHakiGlow(m,false);
+    if(dist<25&&dist>2){ toP.normalize(); m.mesh.position.x+=toP.x*m.speed; m.mesh.position.z+=toP.z*m.speed; m.mesh.lookAt(player.position.x,m.mesh.position.y,player.position.z); }
+    m.attackTimer-=dt;
+    if(dist<2.5&&m.attackTimer<=0){ m.attackTimer=1.2; if(!isObservationHaki){ playerHP=Math.max(0,playerHP-0.8); updateHP(); if(playerHP<=0) respawnNearNPC(); } }
+  }
+}
+function damageMonsters(center,radius,dmg){
+  for(const m of monsters){
+    if(!m.alive) continue;
+    if(m.mesh.position.distanceTo(center)<radius+1){
+      m.hp-=dmg*0.15; m.mesh.scale.set(1.15,1.15,1.15); setTimeout(()=>{ if(m.mesh) m.mesh.scale.set(1,1,1); },100);
+      if(m.hp<=0){ m.alive=false; m.mesh.visible=false; m.respawnTimer=25; dollars+=4; updateDollar(); addExp(8); document.getElementById('status').textContent='+4$ (hạ quái)!'; createExplosion(m.mesh.position.clone()); }
     }
   }
 }
-function respawnBuilding(data){
-  const group=new THREE.Group();
-  const body=new THREE.Mesh(new THREE.BoxGeometry(data.w,data.h,data.d), new THREE.MeshLambertMaterial({color:data.color}));
-  body.position.y=data.h/2; group.add(body);
-  group.position.copy(data.pos);
-  group.userData={health:100,body,type:'building',origW:data.w,origH:data.h,origD:data.d,origColor:data.color,halfW:data.w/2,halfD:data.d/2,height:data.h};
-  scene.add(group); buildings.push(group);
-}
 
-let lastTime=performance.now();
+let lastTime=performance.now(), waterTime=0;
 function update(){
-  const now=performance.now();
-  const dt=Math.min((now-lastTime)/1000,0.04);
-  lastTime=now;
-  hpRegenTimer+=dt;
-  if(hpRegenTimer>=12){hpRegenTimer=0; if(playerHP<playerMaxHP){playerHP=Math.min(playerMaxHP,playerHP+1.2); updateHP();}}
-  for(let i=destroyedBuildings.length-1;i>=0;i--){
-    destroyedBuildings[i].timer-=dt;
-    if(destroyedBuildings[i].timer<=0){respawnBuilding(destroyedBuildings[i]); destroyedBuildings.splice(i,1);}
+  const now=performance.now(), dt=Math.min((now-lastTime)/1000,0.04); lastTime=now; waterTime+=dt;
+  updateDayNight(dt); drawMinimap(); updateMonsters(dt);
+  const inOcean=isInOcean(player.position.x,player.position.z);
+
+  if(activeFruit&&inOcean&&!onBoat){
+    playerHP=Math.max(0,playerHP-0.5*dt); updateHP();
+    if(Math.floor(performance.now()/800)%2===0) document.getElementById('status').textContent='💦 Trái Ác Quỷ yếu dưới nước! -0.5 HP/s';
+    if(playerHP<=0) respawnNearNPC();
   }
-  for(let i=earthWalls.length-1;i>=0;i--){
-    earthWalls[i].life-=dt;
-    if(earthWalls[i].life<=0){scene.remove(earthWalls[i].mesh); earthWalls.splice(i,1);}
+
+  if(boatMesh&&ownedShip){
+    if(onBoat&&inOcean){
+      boatMesh.visible=true; boatMesh.position.x=player.position.x; boatMesh.position.z=player.position.z; boatMesh.position.y=0.4; boatMesh.rotation.y=player.rotation.y;
+      const deckH=1.2*(ownedShip.scale||1);
+      if(player.position.y<deckH+0.3){ player.position.y=deckH+0.5; velocityY=0; onGround=true; isFlying=false; }
+    } else boatMesh.visible=onBoat;
   }
+
+  if(waterGeo){ const pos=waterGeo.attributes.position; for(let i=0;i<pos.count;i+=2){ const x=pos.getX(i), z=pos.getZ(i); pos.setY(i, Math.sin(x*0.02+waterTime*1.2)*1.2 + Math.cos(z*0.018+waterTime*0.9)*0.9); } pos.needsUpdate=true; }
+  water2.position.y=0.2+Math.sin(waterTime*0.8)*0.1;
+
+  hpRegenTimer+=dt; if(hpRegenTimer>=12){ hpRegenTimer=0; if(playerHP<playerMaxHP){ playerHP=Math.min(playerMaxHP,playerHP+1.2); updateHP(); } }
+  for(let i=destroyedBuildings.length-1;i>=0;i--){ destroyedBuildings[i].timer-=dt; if(destroyedBuildings[i].timer<=0){ /*respawn*/ destroyedBuildings.splice(i,1); } }
+  for(let i=earthWalls.length-1;i>=0;i--){ earthWalls[i].life-=dt; if(earthWalls[i].life<=0){ scene.remove(earthWalls[i].mesh); earthWalls.splice(i,1); } }
   updateHeroes(dt);
 
   const forward=new THREE.Vector3(0,0,-1).applyAxisAngle(new THREE.Vector3(0,1,0),camYaw);
@@ -1303,126 +1457,81 @@ function update(){
   if(keys['KeyS']||keys['ArrowDown']) moveDir.sub(forward);
   if(keys['KeyA']||keys['ArrowLeft']) moveDir.sub(right);
   if(keys['KeyD']||keys['ArrowRight']) moveDir.add(right);
-  if(isMobileMode&&(joyDX!==0||joyDY!==0)){moveDir.add(forward.clone().multiplyScalar(-joyDY)); moveDir.add(right.clone().multiplyScalar(joyDX));}
+  if(isMobileMode&&(joyDX!==0||joyDY!==0)){ moveDir.add(forward.clone().multiplyScalar(-joyDY)); moveDir.add(right.clone().multiplyScalar(joyDX)); }
   let spdMult=1;
-  if(fruitAwakened){
-    if(activeFruit?.id==='light'||activeFruit?.id==='lightning') spdMult=6;
-    else if(activeFruit?.id==='rubber'||activeFruit?.id==='mochi') spdMult=3.2;
-    else spdMult=2.2;
-  }
+  if(fruitAwakened){ if(activeFruit?.id==='light'||activeFruit?.id==='lightning') spdMult=6; else if(activeFruit?.id==='rubber'||activeFruit?.id==='mochi') spdMult=3.2; else spdMult=2.2; }
+  if(onBoat&&ownedShip&&isInOcean(player.position.x,player.position.z)) spdMult*=(1.8+ownedShip.speed);
+  else if(isInOcean(player.position.x,player.position.z)&&!onBoat&&!isFlying) spdMult*=0.55;
+  const swimmingNow=isInOcean(player.position.x,player.position.z)&&!onBoat&&!isFlying;
+  player.rotation.order='YXZ';
+  let swimMoving=false, swimAngle=player.rotation.y;
   if(moveDir.length()>0){
     moveDir.normalize();
     const spd=moveSpeed*(isGiant?1.6:1)*(isDragon?1.25:1)*spdMult;
     player.position.addScaledVector(moveDir,spd);
-    const targetAngle=Math.atan2(moveDir.x,moveDir.z);
-    let diff=targetAngle-player.rotation.y;
-    while(diff>Math.PI) diff-=Math.PI*2; while(diff<-Math.PI) diff+=Math.PI*2;
-    player.rotation.y+=diff*0.25;
+    swimAngle=Math.atan2(moveDir.x,moveDir.z); swimMoving=true;
+    if(!swimmingNow){ let diff=swimAngle-player.rotation.y; while(diff>Math.PI) diff-=Math.PI*2; while(diff<-Math.PI) diff+=Math.PI*2; player.rotation.y+=diff*0.25; }
   }
   if(keys['Space']){
     spaceHoldTime+=dt;
     if(!isFlying){
-      if(onGround&&spaceHoldTime<0.25){
-        let jumpPower=JUMP_FORCE*(isGiant?1.3:1);
-        if(fruitAwakened&&(activeFruit?.id==='light'||activeFruit?.id==='lightning')) jumpPower*=8;
-        velocityY=jumpPower; onGround=false;
-      }
-      if(spaceHoldTime>=2.0){isFlying=true; velocityY=0.25; document.getElementById('status').textContent='Đã vào chế độ BAY';}
+      if(onGround&&spaceHoldTime<0.25){ let jumpPower=JUMP_FORCE*(isGiant?1.3:1); if(fruitAwakened&&(activeFruit?.id==='light'||activeFruit?.id==='lightning')) jumpPower*=8; velocityY=jumpPower; onGround=false; }
+      if(spaceHoldTime>=2.0){ isFlying=true; velocityY=0.25; document.getElementById('status').textContent='Đã vào chế độ BAY'; }
     } else velocityY=0.28*(isGiant?1.3:1);
-  } else {if(!isFlying) spaceHoldTime=0;}
+  } else { if(!isFlying) spaceHoldTime=0; }
   if(isFlying&&(keys['ShiftLeft']||keys['ShiftRight'])) velocityY=-0.35*(isGiant?1.3:1);
-  if(!isFlying) velocityY+=GRAVITY;
-  else if(!keys['Space']&&!keys['ShiftLeft']&&!keys['ShiftRight']) velocityY=0;
+  if(!isFlying) velocityY+=GRAVITY; else if(!keys['Space']&&!keys['ShiftLeft']&&!keys['ShiftRight']) velocityY=0;
   player.position.y+=velocityY;
   const groundH=getGroundHeight(player.position.x,player.position.z);
-  if(player.position.y<=groundH){
-    player.position.y=groundH; velocityY=0; onGround=true;
-    if(isFlying){isFlying=false; spaceHoldTime=0; document.getElementById('status').textContent='Đã đáp đất';}
-  } else onGround=false;
-  if(player.position.y>250){player.position.y=250; velocityY=0;}
+  if(swimmingNow){
+    const bob=Math.sin(waterTime*4)*0.06, targetY=SWIM_FEET_Y+bob;
+    player.position.y+=(targetY-player.position.y)*0.25; velocityY=0; onGround=true;
+    if(swimMoving) player.rotation.set(Math.PI/2,swimAngle,0);
+    else { player.rotation.x+=(0.45-player.rotation.x)*0.15; player.rotation.z+=(0-player.rotation.z)*0.15; }
+  } else {
+    player.rotation.x+=(0-player.rotation.x)*0.2; player.rotation.z+=(0-player.rotation.z)*0.2;
+    if(player.position.y<=groundH){ player.position.y=groundH; velocityY=0; onGround=true; if(isFlying){ isFlying=false; spaceHoldTime=0; document.getElementById('status').textContent='Đã đáp đất'; } }
+    else onGround=false;
+  }
+  if(player.position.y>400){ player.position.y=400; velocityY=0; }
   resolveCollision();
-  if(auraMesh){auraMesh.position.copy(player.position); auraMesh.position.y+=1.0; auraMesh.rotation.y+=0.02;}
-  if(fruitModel&&heldFruit){fruitModel.position.copy(player.position); fruitModel.position.y+=2.3; fruitModel.rotation.y+=0.03;}
+  if(auraMesh){ auraMesh.position.copy(player.position); auraMesh.position.y+=1.1; auraMesh.rotation.y+=0.025; }
+  if(fruitModel&&heldFruit){ fruitModel.position.copy(player.position); fruitModel.position.y+=2.4; fruitModel.rotation.y+=0.04; }
   const dist=(isGiant?26:(isDragon?10:6.8))*zoomFactor;
   const safePitch=Math.max(-1.57,Math.min(1.57,camPitch));
-  const camOffset=new THREE.Vector3(Math.sin(camYaw)*dist*Math.cos(safePitch), dist*Math.sin(safePitch)+(isGiant?12:2.4), Math.cos(camYaw)*dist*Math.cos(safePitch));
+  const camOffset=new THREE.Vector3(Math.sin(camYaw)*dist*Math.cos(safePitch), dist*Math.sin(safePitch)+(isGiant?12:2.5), Math.cos(camYaw)*dist*Math.cos(safePitch));
   camera.position.copy(player.position).add(camOffset);
-  const lookAt=player.position.clone(); lookAt.y+=isGiant?9:(isDragon?1.8:1.15);
-  camera.lookAt(lookAt);
-  camera.fov=Math.max(30,Math.min(110,baseFOV*zoomFactor)); camera.updateProjectionMatrix();
+  const lookAt=player.position.clone(); lookAt.y+=isGiant?9:(isDragon?1.9:1.2);
+  camera.lookAt(lookAt); camera.fov=Math.max(30,Math.min(110,baseFOV*zoomFactor)); camera.updateProjectionMatrix();
+
   if(isCharging){
     chargeTime+=dt;
-    if(Math.random()<0.35){
-      const hand=player.position.clone(); hand.y+=1.8*(isGiant?10:1);
-      const sky=hand.clone(); sky.y+=25; sky.x+=(Math.random()-0.5)*20; sky.z+=(Math.random()-0.5)*20;
-      createLightningBolt(sky,hand);
-    }
-    if(chargeTime>2.1){isCharging=false; isCharged=true; document.getElementById('charge').style.display='block'; document.getElementById('status').textContent='Đã tụ! Nhấn T';}
+    if(Math.random()<0.4){ const hand=player.position.clone(); hand.y+=1.9*(isGiant?10:1); const sky=hand.clone(); sky.y+=28; sky.x+=(Math.random()-0.5)*22; sky.z+=(Math.random()-0.5)*22; createLightningBolt(sky,hand); }
+    if(chargeTime>2.1){ isCharging=false; isCharged=true; document.getElementById('charge').style.display='block'; document.getElementById('status').textContent='Đã tụ! Nhấn T'; }
   }
-  cars.forEach(c=>{
-    if(!c.userData.alive) return;
-    const d=new THREE.Vector3(0,0,-1).applyAxisAngle(new THREE.Vector3(0,1,0),c.userData.dir);
-    c.position.addScaledVector(d,c.userData.speed);
-    if(Math.abs(c.position.x)>1500||Math.abs(c.position.z)>1500){c.userData.dir+=Math.PI; c.rotation.y=c.userData.dir;}
-  });
-  people.forEach(p=>{
-    if(!p.userData.alive) return;
-    p.userData.change--;
-    if(p.userData.change<=0){p.userData.angle+=(Math.random()-0.5)*1.2; p.userData.change=60+Math.random()*90;}
-    p.position.x+=Math.sin(p.userData.angle)*p.userData.speed;
-    p.position.z+=Math.cos(p.userData.angle)*p.userData.speed;
-    p.rotation.y=p.userData.angle;
-  });
-  for(let i=lasers.length-1;i>=0;i--){
-    lasers[i].life--; lasers[i].mesh.material.opacity=lasers[i].life/12;
-    if(lasers[i].life<=0){scene.remove(lasers[i].mesh); lasers.splice(i,1);}
-  }
-  for(let i=lightnings.length-1;i>=0;i--){
-    lightnings[i].life--;
-    if(lightnings[i].life<=0){scene.remove(lightnings[i].mesh); lightnings.splice(i,1);}
-  }
+  for(let i=lasers.length-1;i>=0;i--){ lasers[i].life--; lasers[i].mesh.material.opacity=lasers[i].life/12; if(lasers[i].life<=0){ scene.remove(lasers[i].mesh); lasers.splice(i,1); } }
+  for(let i=lightnings.length-1;i>=0;i--){ lightnings[i].life--; if(lightnings[i].life<=0){ scene.remove(lightnings[i].mesh); lightnings.splice(i,1); } }
   for(let i=effects.length-1;i>=0;i--){
     const e=effects[i]; e.life--;
     if(e.type==='heroBullet'){
-      e.mesh.position.addScaledVector(e.dir,1.4);
-      let blocked=false;
-      for(const w of earthWalls){if(e.mesh.position.distanceTo(w.mesh.position)<5){blocked=true;break;}}
-      if(blocked||e.life<=0){scene.remove(e.mesh); effects.splice(i,1); continue;}
-      if(e.mesh.position.distanceTo(player.position)<(isGiant?9:1.9)){
-        if(!isObservationHaki){
-          playerHP=Math.max(0,playerHP-0.25); updateHP();
-          if(playerHP<=0){ respawnNearNPC(); }
-        }
-        scene.remove(e.mesh); effects.splice(i,1);
-      }
-    } else if(e.type==='fireball'){
-      e.mesh.position.addScaledVector(e.dir,1.5);
-      if(e.mesh.material) e.mesh.material.opacity=e.life/50;
-      damageArea(e.mesh.position,2.5,40);
-    } else if(e.type==='rubberball'){
-      e.mesh.position.addScaledVector(e.dir,0.95);
-      e.dir.y -= 0.018;
-      if(e.mesh.material) e.mesh.material.opacity=e.life/55;
-      damageArea(e.mesh.position,2.8,45);
-    } else if(e.type==='blackhole'){
-      e.mesh.scale.multiplyScalar(1.008);
-    } else if(e.type==='quakeRing'){
-      e.mesh.scale.multiplyScalar(1.03);
-      if(e.mesh.material) e.mesh.material.opacity=e.life/42;
-    } else if(e.type==='spaceCrack'){
-      if(e.mesh.material) e.mesh.material.opacity=e.life/50;
-    } else {
-      e.mesh.scale.multiplyScalar(1.025);
-      if(e.mesh.material) e.mesh.material.opacity=e.life/32;
-    }
-    if(e.life<=0){scene.remove(e.mesh); effects.splice(i,1);}
+      e.mesh.position.addScaledVector(e.dir,1.45);
+      let blocked=false; for(const w of earthWalls){ if(e.mesh.position.distanceTo(w.mesh.position)<5){ blocked=true; break; } }
+      if(blocked||e.life<=0){ scene.remove(e.mesh); effects.splice(i,1); continue; }
+      if(e.mesh.position.distanceTo(player.position)<(isGiant?9:1.9)){ if(!isObservationHaki){ playerHP=Math.max(0,playerHP-0.25); updateHP(); if(playerHP<=0) respawnNearNPC(); } scene.remove(e.mesh); effects.splice(i,1); }
+    } else if(e.type==='fireball'){ e.mesh.position.addScaledVector(e.dir,1.55); if(e.mesh.material) e.mesh.material.opacity=e.life/50; damageArea(e.mesh.position,2.6,42); }
+    else if(e.type==='rubberball'){ e.mesh.position.addScaledVector(e.dir,0.98); e.dir.y-=0.019; if(e.mesh.material) e.mesh.material.opacity=e.life/55; damageArea(e.mesh.position,2.9,48); }
+    else if(e.type==='mochiMissile'){ e.mesh.position.addScaledVector(e.dir,1.35); e.mesh.rotation.z+=0.25; damageArea(e.mesh.position,3.2,e.dmg||50); if(e.life%4===0) spawnParticles(e.mesh.position,0xffccaa,3,0.08,12,0.2); if(e.life<=1){ spawnBall(e.mesh.position.clone(),0xff8866,2.2,18); spawnParticles(e.mesh.position,0xffccaa,16,0.2,22,0.35); damageArea(e.mesh.position,7,(e.dmg||50)*1.3); } }
+    else if(e.type==='mochiDonut'){ e.mesh.position.addScaledVector(e.dir,1.15); e.mesh.rotation.z+=0.4; damageArea(e.mesh.position,3.5,e.dmg||55); if(e.life<=1){ spawnRing(e.mesh.position.clone(),0xffccaa,1,6,28); spawnParticles(e.mesh.position,0xffaa88,18,0.18,24,0.3); damageArea(e.mesh.position,9,(e.dmg||55)*1.4); } }
+    else if(e.type==='mochiFist'){ e.mesh.position.addScaledVector(e.dir,1.1); if(e.mesh.material) e.mesh.material.opacity=Math.max(0,e.life/22); damageArea(e.mesh.position,2.4,e.dmg||40); }
+    else if(e.type==='particle'){ e.mesh.position.add(e.vel); e.vel.y-=0.008; if(e.mesh.material) e.mesh.material.opacity=Math.max(0,e.life/30); }
+    else if(e.type==='blackhole') e.mesh.scale.multiplyScalar(1.009);
+    else if(e.type==='quakeRing'){ e.mesh.scale.multiplyScalar(1.032); if(e.mesh.material) e.mesh.material.opacity=e.life/44; }
+    else if(e.type==='spaceCrack'){ if(e.mesh.material) e.mesh.material.opacity=e.life/52; }
+    else { e.mesh.scale.multiplyScalar(1.022); if(e.mesh.material) e.mesh.material.opacity=e.life/34; }
+    if(e.life<=0){ scene.remove(e.mesh); effects.splice(i,1); }
   }
   if(punchCD>0) punchCD--;
-
-  // Multiplayer: send state ~ every frame (server can throttle if needed)
-  if (isConnected && Math.random() < 0.4) { // ~24 times/sec
-    sendPlayerUpdate();
-  }
+  if (isConnected && Math.random() < 0.35) sendPlayerUpdate();
 }
 function updateHP(){
   document.getElementById('hp-text').textContent=playerHP.toFixed(1);
@@ -1431,14 +1540,11 @@ function updateHP(){
   else if(playerHP<playerMaxHP*0.6) document.getElementById('health-fill').style.background='#ffaa00';
   else document.getElementById('health-fill').style.background='linear-gradient(90deg,#22cc22,#88ff44)';
 }
-function animate(){requestAnimationFrame(animate); update(); renderer.render(scene,camera);}
+function animate(){ requestAnimationFrame(animate); update(); renderer.render(scene,camera); }
 animate();
 updateLevelUI();
-window.addEventListener('resize',()=>{
-  camera.aspect=window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth,window.innerHeight);
-});
+document.getElementById('status').textContent='Cảng cao khỏi nước • Bơi ngập nửa người • Phím 3 tàu • Shift+5 NPC Trái • Quake đã nổi trên đất';
+window.addEventListener('resize',()=>{ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); });
 </script>
 </body>
 </html>
