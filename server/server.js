@@ -95,8 +95,34 @@ io.on('connection', (socket) => {
       return;
     }
     socket.username = username;
-    socket.emit('loginResult', { ok: true, username, data: acc.data });
+    socket.emit('loginResult', { ok: true, username, data: acc.data || {} });
     console.log(`Logged in: ${username}`);
+  });
+
+  // Khôi phục acc từ client khi server bị mất file (Render free)
+  socket.on('syncAccount', (data) => {
+    const username = String(data.username || '').trim().slice(0, 16);
+    const password = String(data.password || '').slice(0, 24);
+    if (!username || !password) {
+      socket.emit('loginResult', { ok: false, msg: 'Thiếu thông tin đồng bộ' });
+      return;
+    }
+    if (accounts[username] && accounts[username].password !== password) {
+      socket.emit('loginResult', { ok: false, msg: 'Tên đã tồn tại với mật khẩu khác' });
+      return;
+    }
+    accounts[username] = {
+      password,
+      data: data.data || {
+        level: 1, exp: 0, maxHp: 15, hp: 15,
+        dollars: 0, damageMult: 1, destroyMult: 1,
+        inventory: [], activeFruitId: null
+      }
+    };
+    saveAccounts();
+    socket.username = username;
+    socket.emit('loginResult', { ok: true, username, data: accounts[username].data });
+    console.log(`Synced + logged in: ${username}`);
   });
 
   socket.on('saveData', (data) => {
