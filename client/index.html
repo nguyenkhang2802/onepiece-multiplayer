@@ -1001,7 +1001,7 @@ const FRUIT_LIST=[
   {id:'mochi',name:'Bánh Mochi',type:'Paramecia',color:0xffccaa,shape:'ball',power:5,price:90,rarity:'Sử thi'},
   {id:'soul',name:'Linh Hồn',type:'Paramecia',color:0xaa88ff,shape:'orb',power:6,price:150,rarity:'Huyền thoại'},
   {id:'ope',name:'Phòng',type:'Paramecia',color:0x00ffaa,shape:'orb',power:7,price:220,rarity:'Huyền thoại'},
-  {id:'quake',name:'Chấn Động',type:'Paramecia',color:0x884422,shape:'crystal',power:8,price:350,rarity:'Thần thoại'},
+  {id:'quake',name:'Chấn Động',type:'Paramecia',color:0x7ec8ff,shape:'crystal',power:8,price:350,rarity:'Thần thoại'},
   {id:'smoke',name:'Khói',type:'Logia',color:0x888888,shape:'orb',power:2,price:20,rarity:'Thường'},
   {id:'sand',name:'Cát',type:'Logia',color:0xddbb66,shape:'orb',power:3,price:32,rarity:'Hiếm'},
   {id:'snow',name:'Tuyết',type:'Logia',color:0xeeffff,shape:'crystal',power:3,price:30,rarity:'Hiếm'},
@@ -1015,7 +1015,50 @@ const FRUIT_LIST=[
 ];
 FRUIT_LIST.sort((a,b)=>a.power-b.power);
 
+function createQuakeFruitModel(){
+  const group=new THREE.Group();
+  // Thân trái – khối xanh ngọc (kiểu Blox Fruits)
+  const bodyMat=new THREE.MeshLambertMaterial({color:0x7ec8ff, emissive:0x1a5a8a, emissiveIntensity:0.2});
+  const body=new THREE.Mesh(new THREE.BoxGeometry(1.15,1.3,1.15), bodyMat);
+  body.castShadow=true; group.add(body);
+  // Viền sáng nhẹ
+  const edge=new THREE.Mesh(new THREE.BoxGeometry(1.18,1.33,1.18), new THREE.MeshBasicMaterial({color:0xa8e0ff, transparent:true, opacity:0.22, side:THREE.BackSide}));
+  group.add(edge);
+  // Họa tiết xoắn ốc
+  const patMat=new THREE.MeshBasicMaterial({color:0x2a6a9a});
+  for(let i=0;i<10;i++){
+    const ang=(i/10)*Math.PI*2;
+    const spiral=new THREE.Mesh(new THREE.TorusGeometry(0.11,0.03,6,12), patMat);
+    spiral.position.set(Math.cos(ang)*0.48, (i%3-1)*0.28, Math.sin(ang)*0.48);
+    spiral.rotation.x=Math.PI/2; spiral.rotation.z=ang;
+    group.add(spiral);
+  }
+  // Đường nứt trắng (sét)
+  const crackMat=new THREE.MeshBasicMaterial({color:0xe8ffff});
+  for(let face=0; face<4; face++){
+    const rotY=face*(Math.PI/2);
+    for(let i=0;i<3;i++){
+      const crack=new THREE.Mesh(new THREE.BoxGeometry(0.035,0.02,0.3+Math.random()*0.35), crackMat);
+      const side=0.58;
+      crack.position.set(Math.sin(rotY)*side + (Math.random()-0.5)*0.3*Math.cos(rotY), (Math.random()-0.5)*0.7, Math.cos(rotY)*side - (Math.random()-0.5)*0.3*Math.sin(rotY));
+      crack.rotation.y=rotY; crack.rotation.z=(Math.random()-0.5)*1.0;
+      group.add(crack);
+    }
+  }
+  // Ngã giữa mặt trước
+  const centerCrack=new THREE.Mesh(new THREE.SphereGeometry(0.12,8,8), new THREE.MeshBasicMaterial({color:0xffffff}));
+  centerCrack.position.set(0,0.05,0.58); group.add(centerCrack);
+  // Cuống + lá
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.07,0.28,6), new THREE.MeshLambertMaterial({color:0x2d5a1e}));
+  stem.position.y=0.78; group.add(stem);
+  const leaf=new THREE.Mesh(new THREE.SphereGeometry(0.18,8,6), new THREE.MeshLambertMaterial({color:0x3cb043}));
+  leaf.scale.set(1.1,0.3,0.65); leaf.position.set(0.1,0.95,0); group.add(leaf);
+  group.scale.set(0.55,0.55,0.55);
+  return group;
+}
 function createFruitModel(fruit){
+  // Trái Chấn Động – model riêng giống Blox Fruits
+  if(fruit && fruit.id==='quake') return createQuakeFruitModel();
   const g=new THREE.Group(); let mesh;
   if(fruit.shape==='star') mesh=new THREE.Mesh(new THREE.OctahedronGeometry(0.38,0), new THREE.MeshBasicMaterial({color:fruit.color}));
   else if(fruit.shape==='crystal') mesh=new THREE.Mesh(new THREE.OctahedronGeometry(0.35,0), new THREE.MeshBasicMaterial({color:fruit.color}));
@@ -1118,6 +1161,176 @@ function spawnFireBurst(pos, size=1.0, life=30){
   }
 }
 
+// ==================== CHẤN ĐỘNG VFX ====================
+let camShakeTime=0, camShakePower=0, camZoomPunch=0;
+
+function addCamShake(power, duration){
+  camShakePower=Math.max(camShakePower, power);
+  camShakeTime=Math.max(camShakeTime, duration);
+}
+function addCamZoomPunch(amount){
+  camZoomPunch=Math.max(camZoomPunch, amount);
+}
+
+// Vòng shockwave (sáng mép, trong suốt giữa)
+function spawnShockwaveRing(pos, inner, outer, life, color=0xc8e8ff){
+  const m=new THREE.Mesh(
+    new THREE.RingGeometry(inner, outer, 48),
+    new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.85, side:THREE.DoubleSide, blending:THREE.AdditiveBlending, depthWrite:false})
+  );
+  m.rotation.x=-Math.PI/2;
+  m.position.copy(pos);
+  m.position.y=getGroundHeight(pos.x,pos.z)+0.15;
+  scene.add(m);
+  effects.push({mesh:m, life, type:'quakeRing', expand:1.045});
+}
+
+// Sóng bán nguyệt lao về phía trước
+function spawnSemiShockwave(origin, dir, radius, life=22){
+  const group=new THREE.Group();
+  // Vòng cung bằng nhiều segment
+  for(let i=0;i<9;i++){
+    const t=(i/8)-0.5; // -0.5 .. 0.5
+    const ang=t*Math.PI*0.85;
+    const right=new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0,1,0)).normalize();
+    const p=origin.clone().add(dir.clone().multiplyScalar(radius*0.15)).add(right.multiplyScalar(Math.sin(ang)*radius));
+    p.y=getGroundHeight(p.x,p.z)+0.4+Math.abs(Math.cos(ang))*0.8;
+    const seg=new THREE.Mesh(
+      new THREE.SphereGeometry(0.35+Math.random()*0.25, 8, 8),
+      new THREE.MeshBasicMaterial({color:0xd0f0ff, transparent:true, opacity:0.9, blending:THREE.AdditiveBlending, depthWrite:false})
+    );
+    seg.position.copy(p); group.add(seg);
+  }
+  // Vòng chính
+  const ring=new THREE.Mesh(
+    new THREE.RingGeometry(radius*0.7, radius*1.05, 32, 1, 0, Math.PI),
+    new THREE.MeshBasicMaterial({color:0xa8d8ff, transparent:true, opacity:0.75, side:THREE.DoubleSide, blending:THREE.AdditiveBlending, depthWrite:false})
+  );
+  ring.position.copy(origin);
+  ring.position.y=getGroundHeight(origin.x,origin.z)+0.5;
+  ring.lookAt(origin.clone().add(dir));
+  ring.rotateX(-Math.PI/2);
+  group.add(ring);
+  scene.add(group);
+  effects.push({mesh:group, life, type:'semiWave', dir:dir.clone(), speed:1.8});
+}
+
+// Vết nứt mạng nhện trên đất
+function spawnGroundCracks(center, radius, count=12){
+  for(let i=0;i<count;i++){
+    const ang=(i/count)*Math.PI*2 + Math.random()*0.3;
+    const len=2+Math.random()*radius*0.7;
+    const crack=new THREE.Mesh(
+      new THREE.PlaneGeometry(0.12+Math.random()*0.1, len),
+      new THREE.MeshBasicMaterial({color:0xb8e0ff, transparent:true, opacity:0.9, side:THREE.DoubleSide, blending:THREE.AdditiveBlending, depthWrite:false})
+    );
+    const gx=center.x+Math.cos(ang)*1.2, gz=center.z+Math.sin(ang)*1.2;
+    crack.position.set(gx, getGroundHeight(gx,gz)+0.12, gz);
+    crack.rotation.x=-Math.PI/2;
+    crack.rotation.z=ang;
+    scene.add(crack);
+    effects.push({mesh:crack, life:45+Math.random()*15, type:'crack'});
+  }
+  // nứt nhánh phụ
+  for(let i=0;i<count*1.5;i++){
+    const ang=Math.random()*Math.PI*2;
+    const dist=2+Math.random()*radius;
+    const len=1+Math.random()*3;
+    const crack=new THREE.Mesh(
+      new THREE.PlaneGeometry(0.08, len),
+      new THREE.MeshBasicMaterial({color:0x8899aa, transparent:true, opacity:0.7, side:THREE.DoubleSide})
+    );
+    const gx=center.x+Math.cos(ang)*dist, gz=center.z+Math.sin(ang)*dist;
+    crack.position.set(gx, getGroundHeight(gx,gz)+0.1, gz);
+    crack.rotation.x=-Math.PI/2;
+    crack.rotation.z=ang+(Math.random()-0.5)*0.8;
+    scene.add(crack);
+    effects.push({mesh:crack, life:35, type:'crack'});
+  }
+}
+
+// Đá vụn + debris
+function spawnDebris(center, count=16, power=0.25){
+  for(let i=0;i<count;i++){
+    const size=0.15+Math.random()*0.35;
+    const rock=new THREE.Mesh(
+      new THREE.BoxGeometry(size, size*0.7, size*0.9),
+      new THREE.MeshLambertMaterial({color:0x6a5a4a})
+    );
+    rock.position.copy(center);
+    rock.position.y=getGroundHeight(center.x,center.z)+0.3;
+    const ang=Math.random()*Math.PI*2;
+    const spd=power*(0.6+Math.random());
+    scene.add(rock);
+    effects.push({
+      mesh:rock, life:40+Math.random()*20, type:'debris',
+      vel:new THREE.Vector3(Math.cos(ang)*spd, 0.15+Math.random()*0.35, Math.sin(ang)*spd)
+    });
+  }
+}
+
+// Vòng bụi sát đất
+function spawnDustRing(center, radius, life=30){
+  for(let i=0;i<18;i++){
+    const ang=(i/18)*Math.PI*2;
+    const p=center.clone();
+    p.x+=Math.cos(ang)*radius; p.z+=Math.sin(ang)*radius;
+    p.y=getGroundHeight(p.x,p.z)+0.25;
+    const dust=new THREE.Mesh(
+      new THREE.SphereGeometry(0.4+Math.random()*0.5, 6, 6),
+      new THREE.MeshBasicMaterial({color:0x998877, transparent:true, opacity:0.45})
+    );
+    dust.position.copy(p);
+    scene.add(dust);
+    effects.push({
+      mesh:dust, life:life, type:'smoke',
+      vel:new THREE.Vector3(Math.cos(ang)*0.08, 0.02, Math.sin(ang)*0.08)
+    });
+  }
+}
+
+// Nứt không gian (ultimate)
+function spawnSpaceCrack(center, size=8){
+  for(let i=0;i<14;i++){
+    const crack=new THREE.Mesh(
+      new THREE.PlaneGeometry(0.08+Math.random()*0.15, size*(0.4+Math.random()*0.8)),
+      new THREE.MeshBasicMaterial({color:0xe8f4ff, transparent:true, opacity:0.95, side:THREE.DoubleSide, blending:THREE.AdditiveBlending, depthWrite:false})
+    );
+    const ang=Math.random()*Math.PI*2;
+    crack.position.set(
+      center.x+(Math.random()-0.5)*3,
+      center.y+2+Math.random()*6,
+      center.z+(Math.random()-0.5)*3
+    );
+    crack.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+    scene.add(crack);
+    effects.push({mesh:crack, life:55, type:'spaceCrack'});
+  }
+  // Tâm sáng
+  const core=new THREE.Mesh(
+    new THREE.SphereGeometry(0.6, 12, 12),
+    new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0.9, blending:THREE.AdditiveBlending, depthWrite:false})
+  );
+  core.position.copy(center); core.position.y+=3;
+  scene.add(core);
+  effects.push({mesh:core, life:20, type:'temp'});
+}
+
+// Tích năng lượng trước lòng bàn tay
+function spawnChargeEnergy(pos, life=18){
+  for(let i=0;i<3;i++){
+    const ring=new THREE.Mesh(
+      new THREE.RingGeometry(0.3+i*0.25, 0.45+i*0.25, 24),
+      new THREE.MeshBasicMaterial({color:0xc0e8ff, transparent:true, opacity:0.7-i*0.15, side:THREE.DoubleSide, blending:THREE.AdditiveBlending, depthWrite:false})
+    );
+    ring.position.copy(pos);
+    ring.lookAt(pos.clone().add(camera.getWorldDirection(new THREE.Vector3())));
+    scene.add(ring);
+    effects.push({mesh:ring, life:life-i*3, type:'temp'});
+  }
+  spawnParticles(pos, 0xd0f0ff, 12, 0.08, 16, 0.15);
+}
+
 // ==================== SKILLS (đã sửa Quake nổi trên mặt đất) ====================
 function useZ(){
   if(!activeFruit) return;
@@ -1166,15 +1379,25 @@ function useZ(){
       const room=new THREE.Mesh(new THREE.SphereGeometry(7.5,22,22), new THREE.MeshBasicMaterial({color:0x00ffaa, transparent:true, opacity:0.2, wireframe:true}));
       room.position.copy(start).add(dir.clone().multiplyScalar(6)); scene.add(room); effects.push({mesh:room, life:45, type:'temp'});
       spawnParticles(room.position,0x00ffaa,12,0.1,30); damageArea(room.position,8,dmg*1.05); break;
-    case 'quake':
-      for(let i=0;i<9;i++){
-        const p=start.clone().add(dir.clone().multiplyScalar(5+i*3));
-        p.y = getGroundHeight(p.x, p.z) + 0.15;   // ← SỬA: nổi trên mặt đất
-        spawnRing(p, 0xffaa44, 1.4+i*0.65, 2.4+i*0.65, 28);
-        spawnParticles(p, 0xffaa44, 10, 0.16, 22, 0.32);
-        damageArea(p, 7.2, dmg*0.6);
-      }
+    case 'quake': {
+      // Z — Chấn Động Cơ Bản: tích lực → sóng bán nguyệt lao tới
+      const hand=start.clone().add(dir.clone().multiplyScalar(1.5));
+      spawnChargeEnergy(hand, 14);
+      setTimeout(()=>{
+        spawnSemiShockwave(start.clone().add(dir.clone().multiplyScalar(2)), dir, 4.5, 24);
+        for(let i=0;i<6;i++){
+          const p=start.clone().add(dir.clone().multiplyScalar(4+i*3.2));
+          p.y=getGroundHeight(p.x,p.z);
+          spawnShockwaveRing(p, 1.2+i*0.4, 2.2+i*0.5, 20-i, 0xc8e8ff);
+          if(i%2===0){ spawnGroundCracks(p, 4, 6); spawnDebris(p, 5, 0.18); }
+          damageArea(p, 6.5, dmg*0.55);
+        }
+        spawnDustRing(start.clone().add(dir.clone().multiplyScalar(8)), 5, 28);
+        addCamShake(0.12, 0.25);
+      }, 280);
+      document.getElementById('status').textContent='Chấn Động Z: Sóng bán nguyệt!';
       break;
+    }
     case 'ice':
       for(let i=0;i<6;i++){ const p=start.clone().add(dir.clone().multiplyScalar(6+i*3)); p.y=getGroundHeight(p.x,p.z)+0.3; spawnCone(p,0x88ddff,0.55,2.9,32); spawnParticles(p,0xaaeeff,4,0.08,20,0.2); damageArea(p,4.5,dmg*0.65); } break;
     case 'fire':
@@ -1241,10 +1464,37 @@ function useX(){
       spawnParticles(start.clone().add(dir.clone().multiplyScalar(10)),0xffccaa,20,0.14,26,0.3);
       document.getElementById('status').textContent='Mochi X: Pastry River!'; break;
     }
-    case 'quake':
-      const fist=new THREE.Mesh(new THREE.SphereGeometry(2.0,12,12), new THREE.MeshBasicMaterial({color:0xaa6633, transparent:true, opacity:0.92}));
-      fist.position.copy(start).add(dir.clone().multiplyScalar(4)); scene.add(fist); effects.push({mesh:fist, life:18, type:'temp'});
-      spawnParticles(fist.position,0xffaa44,12,0.18,16); damageRay(start,dir,16,dmg*1.35); camPitch+=(Math.random()-0.5)*0.14; break;
+    case 'quake': {
+      // X — Sóng Chấn Động: vòng đồng tâm → sóng bán nguyệt lớn + nứt đất
+      const hand=start.clone().add(dir.clone().multiplyScalar(1.8));
+      spawnChargeEnergy(hand, 16);
+      for(let i=0;i<4;i++){
+        setTimeout(()=>{
+          spawnShockwaveRing(start.clone().add(dir.clone().multiplyScalar(2)), 0.8+i*0.5, 1.5+i*0.6, 14, 0xd0f0ff);
+        }, i*50);
+      }
+      setTimeout(()=>{
+        spawnSemiShockwave(start.clone().add(dir.clone().multiplyScalar(3)), dir, 7, 28);
+        for(let i=0;i<8;i++){
+          const p=start.clone().add(dir.clone().multiplyScalar(5+i*3.5));
+          spawnShockwaveRing(p, 2+i*0.5, 3.5+i*0.6, 22, 0xb8e0ff);
+          spawnGroundCracks(p, 5, 8);
+          if(i%2===0) spawnDebris(p, 8, 0.22);
+          damageArea(p, 7.5, dmg*0.5);
+        }
+        // Impact cuối
+        const impact=start.clone().add(dir.clone().multiplyScalar(28));
+        spawnShockwaveRing(impact, 3, 8, 28, 0xffffff);
+        spawnGroundCracks(impact, 10, 14);
+        spawnDebris(impact, 18, 0.3);
+        spawnDustRing(impact, 8, 32);
+        damageArea(impact, 12, dmg*0.9);
+        addCamShake(0.22, 0.35);
+        addCamZoomPunch(0.08);
+      }, 220);
+      document.getElementById('status').textContent='Chấn Động X: Sóng địa chấn!';
+      break;
+    }
     case 'lightning': case 'plasma': case 'light':
       createLightningBolt(start, start.clone().add(dir.clone().multiplyScalar(26)), col);
       spawnParticles(start.clone().add(dir.clone().multiplyScalar(12)),col,10,0.15,18); damageRay(start,dir,26,dmg*1.25); break;
@@ -1273,15 +1523,47 @@ function useC(){
   const id=activeFruit.id, col=activeFruit.color;
 
   switch(id){
-    case 'quake':
-      for(let i=0;i<12;i++){
-        const ang=(i/12)*Math.PI*2;
-        const p=start.clone().add(new THREE.Vector3(Math.cos(ang)*9.5, 0, Math.sin(ang)*9.5));
-        p.y = getGroundHeight(p.x, p.z) + 0.2;   // ← SỬA
-        const wave=new THREE.Mesh(new THREE.CylinderGeometry(0.28,1.2,3.6,7), new THREE.MeshBasicMaterial({color:0x996633, transparent:true, opacity:0.8}));
-        wave.position.copy(p); wave.position.y += 1.8; scene.add(wave); effects.push({mesh:wave, life:28, type:'temp'});
+    case 'quake': {
+      // C — Đại Địa Chấn: tích lực → đập đất → 360° shockwave + nứt + debris
+      spawnChargeEnergy(start.clone().add(new THREE.Vector3(0,2,0)), 20);
+      spawnGroundCracks(start, 4, 8);
+      // Đá lơ lửng
+      for(let i=0;i<10;i++){
+        const ang=Math.random()*Math.PI*2, dist=2+Math.random()*4;
+        const rock=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.25,0.35), new THREE.MeshLambertMaterial({color:0x6a5a4a}));
+        rock.position.set(start.x+Math.cos(ang)*dist, getGroundHeight(start.x,start.z)+1.2+Math.random(), start.z+Math.sin(ang)*dist);
+        scene.add(rock);
+        effects.push({mesh:rock, life:50, type:'debris', vel:new THREE.Vector3(0,0.02,0)});
       }
-      spawnParticles(start,0xffaa44,18,0.16,22); damageArea(start,13.5,dmg*1.25); break;
+      setTimeout(()=>{
+        // Shockwave 360
+        for(let r=0;r<5;r++){
+          setTimeout(()=>{
+            spawnShockwaveRing(start, 3+r*3.5, 5+r*3.8, 28-r*2, r===0?0xffffff:0xb0d8f0);
+          }, r*60);
+        }
+        spawnGroundCracks(start, 16, 20);
+        spawnDebris(start, 28, 0.35);
+        spawnDustRing(start, 10, 36);
+        spawnDustRing(start, 16, 40);
+        // Cột đá
+        for(let i=0;i<12;i++){
+          const ang=(i/12)*Math.PI*2;
+          const p=start.clone().add(new THREE.Vector3(Math.cos(ang)*8,0,Math.sin(ang)*8));
+          p.y=getGroundHeight(p.x,p.z);
+          const pillar=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.5,2.5+Math.random()*2,6), new THREE.MeshLambertMaterial({color:0x7a6a5a}));
+          pillar.position.set(p.x, p.y+1.5, p.z);
+          scene.add(pillar);
+          effects.push({mesh:pillar, life:40, type:'temp'});
+        }
+        damageArea(start, 16, dmg*1.3);
+        addCamShake(0.35, 0.8);
+        // Rung liên tục
+        for(let t=0;t<6;t++) setTimeout(()=>addCamShake(0.12, 0.15), 200+t*180);
+      }, 350);
+      document.getElementById('status').textContent='Chấn Động C: Đại Địa Chấn!';
+      break;
+    }
     case 'barrier':
       const dome=new THREE.Mesh(new THREE.SphereGeometry(6.5,18,18), new THREE.MeshBasicMaterial({color:0x88aaff, transparent:true, opacity:0.28}));
       dome.position.copy(player.position); scene.add(dome); effects.push({mesh:dome, life:55, type:'temp'}); spawnParticles(player.position,0x88aaff,16,0.1,30); break;
@@ -1330,24 +1612,52 @@ function useV(){
   spawnParticles(start,col,45,0.28,40,0.4); spawnParticles(start,0xffffff,18,0.2,25,0.22);
 
   if(id==='quake'){
+    // V — ĐẠI HỦY DIỆT: tích lực → nứt không gian → shockwave tầng → BOOM
     document.getElementById('status').textContent='⚡ CHẤN ĐỘNG V: VỠ KHÔNG GIAN!!!';
-    for(let i=0;i<20;i++){
-      const crack=new THREE.Mesh(new THREE.PlaneGeometry(0.2+Math.random()*0.5,10+Math.random()*14), new THREE.MeshBasicMaterial({color:0xffaa33, transparent:true, opacity:0.93, side:THREE.DoubleSide}));
-      const ang=Math.random()*Math.PI*2, dist=4+Math.random()*19;
-      const gx=start.x+Math.cos(ang)*dist, gz=start.z+Math.sin(ang)*dist;
-      crack.position.set(gx, getGroundHeight(gx,gz)+2+Math.random()*8, gz);
-      crack.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
-      scene.add(crack); effects.push({mesh:crack, life:52, type:'spaceCrack'});
+    // 0.00 — tích lực
+    spawnChargeEnergy(start.clone().add(new THREE.Vector3(0,2.5,0)), 25);
+    spawnParticles(start, 0xd0f0ff, 30, 0.12, 35, 0.2);
+    spawnGroundCracks(start, 5, 10);
+    for(let i=0;i<12;i++){
+      const ang=Math.random()*Math.PI*2, dist=2+Math.random()*5;
+      const rock=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.2,0.3), new THREE.MeshLambertMaterial({color:0x6a5a4a}));
+      rock.position.set(start.x+Math.cos(ang)*dist, getGroundHeight(start.x,start.z)+1.5+Math.random()*1.5, start.z+Math.sin(ang)*dist);
+      scene.add(rock);
+      effects.push({mesh:rock, life:60, type:'debris', vel:new THREE.Vector3(0,0.015,0)});
     }
-    for(let r=0;r<6;r++){
-      const ring=new THREE.Mesh(new THREE.RingGeometry(5+r*5,7.8+r*5,36), new THREE.MeshBasicMaterial({color:0xff6600, transparent:true, opacity:0.55, side:THREE.DoubleSide}));
-      ring.rotation.x=-Math.PI/2; ring.position.copy(start);
-      ring.position.y = getGroundHeight(start.x, start.z) + 0.2;   // ← SỬA
-      scene.add(ring); effects.push({mesh:ring, life:44, type:'quakeRing'});
-    }
-    damageArea(start,30,195*damageMult);
-    for(let i=0;i<14;i++) setTimeout(()=>{ camYaw+=(Math.random()-0.5)*0.14; camPitch+=(Math.random()-0.5)*0.1; }, i*35);
-    auraMesh=new THREE.Mesh(new THREE.SphereGeometry(4.0,18,18), new THREE.MeshBasicMaterial({color:0xff8800, transparent:true, opacity:0.28}));
+    addCamShake(0.08, 0.4);
+    // 0.35 — nứt không gian
+    setTimeout(()=>{
+      spawnSpaceCrack(start.clone().add(new THREE.Vector3(0,2,0)), 12);
+      addCamShake(0.15, 0.2);
+    }, 350);
+    // 0.45 — shockwave tầng
+    setTimeout(()=>{
+      for(let r=0;r<7;r++){
+        setTimeout(()=>{
+          spawnShockwaveRing(start, 4+r*5, 7+r*5.2, 40-r*3, r<2?0xffffff:0xb0d8f0);
+        }, r*70);
+      }
+      spawnGroundCracks(start, 22, 28);
+      spawnDebris(start, 40, 0.45);
+      spawnDustRing(start, 12, 45);
+      spawnDustRing(start, 20, 50);
+      damageArea(start, 28, 195*damageMult);
+      addCamShake(0.55, 0.6);
+      addCamZoomPunch(0.15);
+    }, 450);
+    // 0.70 — đỉnh điểm flash + rung
+    setTimeout(()=>{
+      const flash=new THREE.Mesh(
+        new THREE.SphereGeometry(25, 16, 16),
+        new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0.35, depthWrite:false})
+      );
+      flash.position.copy(start); scene.add(flash);
+      effects.push({mesh:flash, life:8, type:'temp'});
+      addCamShake(0.4, 0.5);
+      for(let t=0;t<8;t++) setTimeout(()=>addCamShake(0.1, 0.12), t*100);
+    }, 700);
+    auraMesh=new THREE.Mesh(new THREE.SphereGeometry(4.0,18,18), new THREE.MeshBasicMaterial({color:0xa0d0ff, transparent:true, opacity:0.28}));
   } else if(id==='rubber'){
     document.getElementById('status').textContent=activeFruit.name+' V: Phóng to!';
     player.scale.set(isGiant?15:3.6, isGiant?15:3.6, isGiant?15:3.6);
@@ -1994,6 +2304,20 @@ function update(){
   const safePitch=Math.max(-1.57,Math.min(1.57,camPitch));
   const camOffset=new THREE.Vector3(Math.sin(camYaw)*dist*Math.cos(safePitch), dist*Math.sin(safePitch)+(isGiant?12:2.5), Math.cos(camYaw)*dist*Math.cos(safePitch));
   camera.position.copy(player.position).add(camOffset);
+  // Camera shake + zoom punch (Chấn Động)
+  if(camShakeTime>0){
+    camShakeTime-=dt;
+    const s=camShakePower*(camShakeTime>0?1:0);
+    camera.position.x+=(Math.random()-0.5)*s*2.5;
+    camera.position.y+=(Math.random()-0.5)*s*1.8;
+    camera.position.z+=(Math.random()-0.5)*s*2.5;
+    camShakePower*=0.92;
+  }
+  if(camZoomPunch>0){
+    zoomFactor=Math.max(0.4, zoomFactor-camZoomPunch);
+    camZoomPunch*=0.85;
+    if(camZoomPunch<0.005){ camZoomPunch=0; zoomFactor=Math.min(2.6, zoomFactor+0.02); }
+  }
   const lookAt=player.position.clone(); lookAt.y+=isGiant?9:(isDragon?1.9:1.2);
   camera.lookAt(lookAt); camera.fov=Math.max(30,Math.min(110,baseFOV*zoomFactor)); camera.updateProjectionMatrix();
 
@@ -2021,7 +2345,10 @@ function update(){
     else if(e.type==='smoke'){ e.mesh.position.add(e.vel); e.mesh.scale.multiplyScalar(1.035); if(e.mesh.material) e.mesh.material.opacity=Math.max(0,e.life/50); }
     else if(e.type==='particle'){ e.mesh.position.add(e.vel); e.vel.y-=0.008; if(e.mesh.material) e.mesh.material.opacity=Math.max(0,e.life/30); }
     else if(e.type==='blackhole') e.mesh.scale.multiplyScalar(1.009);
-    else if(e.type==='quakeRing'){ e.mesh.scale.multiplyScalar(1.032); if(e.mesh.material) e.mesh.material.opacity=e.life/44; }
+    else if(e.type==='quakeRing'){ e.mesh.scale.multiplyScalar(e.expand||1.032); if(e.mesh.material) e.mesh.material.opacity=Math.max(0,e.life/44); }
+    else if(e.type==='semiWave'){ e.mesh.position.addScaledVector(e.dir, e.speed||1.5); if(e.mesh.children) e.mesh.children.forEach(c=>{ if(c.material) c.material.opacity=Math.max(0,e.life/25); }); }
+    else if(e.type==='crack'){ if(e.mesh.material) e.mesh.material.opacity=Math.max(0, e.life/50); }
+    else if(e.type==='debris'){ e.mesh.position.add(e.vel); e.vel.y-=0.012; e.mesh.rotation.x+=0.05; e.mesh.rotation.z+=0.04; }
     else if(e.type==='spaceCrack'){ if(e.mesh.material) e.mesh.material.opacity=e.life/52; }
     else { e.mesh.scale.multiplyScalar(1.022); if(e.mesh.material) e.mesh.material.opacity=e.life/34; }
     if(e.life<=0){ scene.remove(e.mesh); effects.splice(i,1); }
