@@ -547,11 +547,27 @@ function respawnNearNPC() {
 let fruitInventory = []; // array of fruit objects stored
 let droppedFruits = [];  // {id, fruit, mesh, x,y,z}
 let chatVisible = false;
-let currentAccount = null; // {username}
+let currentAccount = null; // {username, password}
+
+// ===== Lưu acc trên trình duyệt (chống mất khi Render restart) =====
+function loadLocalAccounts() {
+  try { return JSON.parse(localStorage.getItem('op_accounts') || '{}'); }
+  catch (e) { return {}; }
+}
+function saveLocalAccount(username, password, data) {
+  try {
+    const all = loadLocalAccounts();
+    all[username] = { password, data: data || all[username]?.data || {} };
+    localStorage.setItem('op_accounts', JSON.stringify(all));
+  } catch (e) { console.warn('localStorage save failed', e); }
+}
+function getLocalAccount(username) {
+  return loadLocalAccounts()[username] || null;
+}
 
 function showAuth() {
   const ov = document.getElementById('auth-overlay');
-  if (ov) { ov.style.display = 'flex'; ov.style.visibility = 'visible'; }
+  if (ov) { ov.style.display = 'flex'; ov.style.visibility = 'visible'; ov.style.pointerEvents = 'auto'; }
 }
 function hideAuth() {
   const ov = document.getElementById('auth-overlay');
@@ -562,6 +578,17 @@ document.getElementById('auth-register-btn').onclick = () => {
   const user = document.getElementById('auth-user').value.trim();
   const pass = document.getElementById('auth-pass').value;
   if (!user || !pass) { document.getElementById('auth-msg').textContent = 'Nhập đủ tên và mật khẩu!'; return; }
+  // Lưu local ngay
+  if (getLocalAccount(user)) {
+    document.getElementById('auth-msg').style.color = '#f55';
+    document.getElementById('auth-msg').textContent = 'Tên này đã có trên máy bạn. Hãy đăng nhập.';
+    return;
+  }
+  saveLocalAccount(user, pass, {
+    level: 1, exp: 0, maxHp: 15, hp: 15,
+    dollars: 0, damageMult: 1, destroyMult: 1,
+    inventory: [], activeFruitId: null
+  });
   if (socket && isConnected) {
     socket.emit('register', { username: user, password: pass });
   } else {
@@ -573,7 +600,18 @@ document.getElementById('auth-login-btn').onclick = () => {
   const pass = document.getElementById('auth-pass').value;
   if (!user || !pass) { document.getElementById('auth-msg').textContent = 'Nhập đủ tên và mật khẩu!'; return; }
   if (socket && isConnected) {
+    // Thử login server trước
     socket.emit('login', { username: user, password: pass });
+    // Nếu server mất acc, sau 1s thử sync từ local
+    setTimeout(() => {
+      if (currentAccount) return; // đã login thành công
+      const local = getLocalAccount(user);
+      if (local && local.password === pass) {
+        document.getElementById('auth-msg').style.color = '#0f0';
+        document.getElementById('auth-msg').textContent = 'Khôi phục acc từ máy...';
+        socket.emit('syncAccount', { username: user, password: pass, data: local.data });
+      }
+    }, 800);
   } else {
     document.getElementById('auth-msg').textContent = 'Chưa kết nối server!';
   }
@@ -753,9 +791,11 @@ connectMultiplayer = function() {
     });
     socket.on('loginResult', (res) => {
       if (res.ok) {
-        currentAccount = { username: res.username };
+        const pass = document.getElementById('auth-pass').value;
+        currentAccount = { username: res.username, password: pass };
+        // Lưu vào máy để không mất khi Render restart
+        saveLocalAccount(res.username, pass, res.data || getSaveData());
         hideAuth();
-        // Đảm bảo ẩn chắc chắn
         const ov = document.getElementById('auth-overlay');
         if (ov) { ov.style.display = 'none'; ov.style.visibility = 'hidden'; }
         applySavedData(res.data);
@@ -831,12 +871,14 @@ connectMultiplayer = function() {
         document.getElementById('status').textContent = `Nhặt được ${data.fruit.name}! Nhấn 1 để ăn hoặc lưu trữ.`;
       }
     });
-    // Auto-save every 20s
+    // Auto-save every 15s (server + máy local)
     setInterval(() => {
-      if (socket && isConnected && currentAccount) {
-        socket.emit('saveData', getSaveData());
+      if (currentAccount) {
+        const data = getSaveData();
+        saveLocalAccount(currentAccount.username, currentAccount.password || '', data);
+        if (socket && isConnected) socket.emit('saveData', data);
       }
-    }, 20000);
+    }, 15000);
   } catch (e) {
     console.error(e);
     document.getElementById('mp-status').textContent = '⚠️ Chạy offline';
@@ -2368,6 +2410,13 @@ animate();
 updateLevelUI();
 document.getElementById('status').textContent='Cảng cao khỏi nước • Bơi ngập nửa người • Phím 3 tàu • Shift+5 NPC Trái • Quake đã nổi trên đất';
 window.addEventListener('resize',()=>{ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); });
+// Lưu acc khi đóng tab
+window.addEventListener('beforeunload', ()=>{
+  if(currentAccount){
+    saveLocalAccount(currentAccount.username, currentAccount.password||'', getSaveData());
+    if(socket && isConnected) socket.emit('saveData', getSaveData());
+  }
+});
 </script>
 </body>
 </html>
