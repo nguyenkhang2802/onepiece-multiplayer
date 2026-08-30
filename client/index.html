@@ -315,21 +315,131 @@ function buildHumanForm(){
   const rightHand=new THREE.Mesh(new THREE.SphereGeometry(0.075,8,8),matRed); rightHand.position.set(0.40,0.60,0); player.add(rightHand);
 }
 
+let dragonSegments=[], dragonHeadGroup=null, dragonWingL=null, dragonWingR=null, dragonAnimT=0;
+
 function buildDragonForm(){
   while(player.children.length) player.remove(player.children[0]);
-  const bodyMat=makeToonMat(0x1a5aaa,0x003355,0.15);
-  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.48,0.58,3.3,10),bodyMat); body.rotation.x=Math.PI/2; body.position.set(0,1.15,-0.9); body.castShadow=true; player.add(body);
-  const head=new THREE.Mesh(new THREE.BoxGeometry(0.95,0.75,1.15),bodyMat); head.position.set(0,1.45,1.35); head.castShadow=true; player.add(head);
-  const snout=new THREE.Mesh(new THREE.BoxGeometry(0.58,0.42,0.75),bodyMat); snout.position.set(0,1.3,2.05); player.add(snout);
-  const hornMat=makeToonMat(0xeeeeee);
-  const hornL=new THREE.Mesh(new THREE.ConeGeometry(0.11,0.75,6),hornMat); hornL.position.set(-0.3,2.0,1.15); hornL.rotation.z=0.3; player.add(hornL);
-  const hornR=hornL.clone(); hornR.position.x=0.3; hornR.rotation.z=-0.3; player.add(hornR);
+  dragonSegments=[]; dragonHeadGroup=null; dragonWingL=null; dragonWingR=null;
+
+  const scaleMat=makeToonMat(0x1a6abb,0x004466,0.18);
+  const bellyMat=makeToonMat(0xc8a060,0x664422,0.08);
+  const hornMat=makeToonMat(0xf0f0f0,0x888888,0.05);
   const eyeMat=new THREE.MeshBasicMaterial({color:0xff2200});
-  const eyeL=new THREE.Mesh(new THREE.SphereGeometry(0.11,8,8),eyeMat); eyeL.position.set(-0.3,1.55,1.75); player.add(eyeL);
-  const eyeR=eyeL.clone(); eyeR.position.x=0.3; player.add(eyeR);
-  for(let i=0;i<2;i++){ const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.12,0.95,6),bodyMat); leg.position.set(i===0?-0.42:0.42,0.58,0.65); leg.castShadow=true; player.add(leg); }
-  for(let i=0;i<2;i++){ const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.13,1.05,6),bodyMat); leg.position.set(i===0?-0.48:0.48,0.52,-1.75); leg.castShadow=true; player.add(leg); }
-  const tail=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.07,2.3,7),bodyMat); tail.rotation.x=Math.PI/2; tail.position.set(0,0.95,-3.3); player.add(tail);
+  const pupilMat=new THREE.MeshBasicMaterial({color:0x110000});
+  const fangMat=makeToonMat(0xfff8e8);
+
+  // ===== ĐẦU =====
+  const headG=new THREE.Group();
+  headG.position.set(0,1.35,2.2);
+  const skull=new THREE.Mesh(new THREE.BoxGeometry(1.05,0.85,1.2),scaleMat); skull.castShadow=true; headG.add(skull);
+  const snout=new THREE.Mesh(new THREE.BoxGeometry(0.65,0.48,1.0),scaleMat); snout.position.set(0,-0.08,0.95); headG.add(snout);
+  const jaw=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.22,0.75),scaleMat); jaw.position.set(0,-0.38,0.75); headG.add(jaw);
+  for(let i=0;i<4;i++){
+    const fang=new THREE.Mesh(new THREE.ConeGeometry(0.05,0.22,5),fangMat);
+    fang.rotation.x=Math.PI; fang.position.set(-0.18+i*0.12,-0.28,1.15); headG.add(fang);
+  }
+  const hornL=new THREE.Mesh(new THREE.ConeGeometry(0.12,0.95,7),hornMat);
+  hornL.position.set(-0.35,0.7,-0.15); hornL.rotation.z=0.35; hornL.rotation.x=-0.2; headG.add(hornL);
+  const hornR=hornL.clone(); hornR.position.x=0.35; hornR.rotation.z=-0.35; headG.add(hornR);
+  const h2L=new THREE.Mesh(new THREE.ConeGeometry(0.07,0.45,6),hornMat);
+  h2L.position.set(-0.42,0.45,0.25); h2L.rotation.z=0.5; headG.add(h2L);
+  const h2R=h2L.clone(); h2R.position.x=0.42; h2R.rotation.z=-0.5; headG.add(h2R);
+  const eyeL=new THREE.Mesh(new THREE.SphereGeometry(0.14,10,10),eyeMat); eyeL.position.set(-0.32,0.18,0.55); headG.add(eyeL);
+  const eyeR=eyeL.clone(); eyeR.position.x=0.32; headG.add(eyeR);
+  const pupL=new THREE.Mesh(new THREE.SphereGeometry(0.06,8,8),pupilMat); pupL.position.set(-0.32,0.18,0.66); headG.add(pupL);
+  const pupR=pupL.clone(); pupR.position.x=0.32; headG.add(pupR);
+  const browL=new THREE.Mesh(new THREE.BoxGeometry(0.28,0.06,0.12),scaleMat); browL.position.set(-0.32,0.32,0.5); browL.rotation.z=0.2; headG.add(browL);
+  const browR=browL.clone(); browR.position.x=0.32; browR.rotation.z=-0.2; headG.add(browR);
+  const whiskL=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.02,0.9,5),makeToonMat(0xeeeeaa));
+  whiskL.position.set(-0.4,-0.05,1.2); whiskL.rotation.z=0.9; whiskL.rotation.x=0.3; headG.add(whiskL);
+  const whiskR=whiskL.clone(); whiskR.position.x=0.4; whiskR.rotation.z=-0.9; headG.add(whiskR);
+  player.add(headG); dragonHeadGroup=headG;
+
+  // ===== THÂN DÀI NHIỀU ĐOẠN =====
+  const segCount=10;
+  for(let i=0;i<segCount;i++){
+    const t=i/(segCount-1);
+    const r=0.55-t*0.32;
+    const seg=new THREE.Group();
+    const body=new THREE.Mesh(new THREE.SphereGeometry(r,10,10),scaleMat);
+    body.scale.set(1,0.85,1.15); body.castShadow=true; seg.add(body);
+    const belly=new THREE.Mesh(new THREE.SphereGeometry(r*0.75,8,8),bellyMat);
+    belly.position.y=-r*0.35; belly.scale.set(0.9,0.5,1); seg.add(belly);
+    if(i<segCount-1){
+      const spike=new THREE.Mesh(new THREE.ConeGeometry(r*0.25,r*0.7,5),scaleMat);
+      spike.position.y=r*0.7; seg.add(spike);
+      for(let s=0;s<3;s++){
+        const sc=new THREE.Mesh(new THREE.SphereGeometry(r*0.18,6,6),makeToonMat(0x0d4a8a,0x002244,0.2));
+        const a=(s/3)*Math.PI-Math.PI*0.3;
+        sc.position.set(Math.cos(a)*r*0.85, Math.sin(a)*r*0.5, 0); seg.add(sc);
+      }
+    }
+    seg.position.set(0,1.15,1.2-i*0.95);
+    player.add(seg); dragonSegments.push(seg);
+  }
+  const tailTip=new THREE.Mesh(new THREE.ConeGeometry(0.12,1.4,7),scaleMat);
+  tailTip.rotation.x=Math.PI/2; tailTip.position.set(0,1.0,1.2-segCount*0.95-0.5);
+  player.add(tailTip); dragonSegments.push(tailTip);
+
+  // ===== CÁNH =====
+  function makeWing(side){
+    const wing=new THREE.Group();
+    const bone=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.04,2.8,5),scaleMat);
+    bone.rotation.z=side*0.9; bone.position.set(side*0.9,0.3,0); wing.add(bone);
+    const membrane=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.6), new THREE.MeshLambertMaterial({color:0x1a3a6a, transparent:true, opacity:0.75, side:THREE.DoubleSide}));
+    membrane.position.set(side*1.5,0.2,-0.2); membrane.rotation.y=side*0.3; wing.add(membrane);
+    for(let k=0;k<3;k++){
+      const b=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.02,1.4,4),scaleMat);
+      b.position.set(side*(1.0+k*0.35),0.1-k*0.15,-0.1); b.rotation.z=side*(0.5+k*0.15); wing.add(b);
+    }
+    wing.position.set(0,1.4,0.3); return wing;
+  }
+  dragonWingL=makeWing(-1); dragonWingR=makeWing(1);
+  player.add(dragonWingL); player.add(dragonWingR);
+
+  // Chân
+  for(let i=0;i<2;i++){
+    const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.11,0.9,6),scaleMat);
+    leg.position.set(i===0?-0.45:0.45,0.55,0.8); leg.castShadow=true; player.add(leg);
+    const claw=new THREE.Mesh(new THREE.ConeGeometry(0.08,0.25,5),fangMat);
+    claw.rotation.x=Math.PI; claw.position.set(i===0?-0.45:0.45,0.12,0.95); player.add(claw);
+  }
+  for(let i=0;i<2;i++){
+    const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.12,1.0,6),scaleMat);
+    leg.position.set(i===0?-0.5:0.5,0.5,-1.8); leg.castShadow=true; player.add(leg);
+  }
+}
+
+function updateDragonAnim(dt){
+  if(!isDragon||dragonSegments.length===0) return;
+  dragonAnimT+=dt;
+  const wave=isFlying?1.0:0.35;
+  const speed=isFlying?5.5:2.2;
+  for(let i=0;i<dragonSegments.length;i++){
+    const seg=dragonSegments[i];
+    if(!seg||!seg.position) continue;
+    const phase=dragonAnimT*speed-i*0.45;
+    const ampY=wave*(0.22+i*0.03);
+    const ampX=wave*(0.12+i*0.02);
+    if(seg.geometry&&seg.geometry.type==='ConeGeometry'){
+      seg.position.y=1.0+Math.sin(phase)*ampY;
+      seg.position.x=Math.sin(phase*0.8)*ampX;
+    } else {
+      seg.position.y=1.15+Math.sin(phase)*ampY;
+      seg.position.x=Math.sin(phase*0.85)*ampX;
+      seg.rotation.z=Math.sin(phase)*0.12*wave;
+      seg.rotation.x=Math.cos(phase)*0.08*wave;
+    }
+  }
+  if(dragonHeadGroup){
+    dragonHeadGroup.position.y=1.35+Math.sin(dragonAnimT*speed*0.7)*0.08*wave;
+    dragonHeadGroup.rotation.x=Math.sin(dragonAnimT*2)*0.06*wave;
+  }
+  if(dragonWingL&&dragonWingR){
+    const flap=isFlying?Math.sin(dragonAnimT*8)*0.55:Math.sin(dragonAnimT*2)*0.12;
+    dragonWingL.rotation.z=-0.3+flap; dragonWingR.rotation.z=0.3-flap;
+    dragonWingL.rotation.x=flap*0.3; dragonWingR.rotation.x=flap*0.3;
+  }
 }
 buildHumanForm();
 player.position.set(20,8,40); scene.add(player);
@@ -2104,8 +2214,17 @@ document.addEventListener('keydown',e=>{
 function toggleGiant(){ isGiant=!isGiant; if(isGiant){ player.scale.set(10,10,10); baseFOV=92; document.getElementById('status').textContent='PHÓNG TO x10'; } else { player.scale.set(1,1,1); baseFOV=70; document.getElementById('status').textContent='Bình thường'; } }
 function toggleDragon(){
   isDragon=!isDragon;
-  if(isDragon){ buildDragonForm(); document.getElementById('form-status').style.display='block'; document.getElementById('status').textContent='RỒNG KAIDO'; }
-  else { buildHumanForm(); document.getElementById('form-status').style.display='none'; document.getElementById('status').textContent='Dạng người'; }
+  if(isDragon){
+    buildDragonForm();
+    document.getElementById('form-status').style.display='block';
+    document.getElementById('form-status').textContent='DẠNG: RỒNG KAIDO';
+    document.getElementById('status').textContent='RỒNG KAIDO — thân dài, vảy, uốn lượn khi bay';
+  } else {
+    dragonSegments=[]; dragonHeadGroup=null; dragonWingL=null; dragonWingR=null;
+    buildHumanForm();
+    document.getElementById('form-status').style.display='none';
+    document.getElementById('status').textContent='Dạng người';
+  }
   player.scale.set(isGiant?10:1, isGiant?10:1, isGiant?10:1);
 }
 
@@ -2260,7 +2379,7 @@ function damageMonsters(center,radius,dmg){
 let lastTime=performance.now(), waterTime=0;
 function update(){
   const now=performance.now(), dt=Math.min((now-lastTime)/1000,0.04); lastTime=now; waterTime+=dt;
-  updateDayNight(dt); drawMinimap(); updateMonsters(dt);
+  updateDayNight(dt); drawMinimap(); updateMonsters(dt); updateDragonAnim(dt);
   const inOcean=isInOcean(player.position.x,player.position.z);
 
   // Chỉ mất máu khi đã ĂN trái + đang CHẠM NƯỚC (không bay cao)
