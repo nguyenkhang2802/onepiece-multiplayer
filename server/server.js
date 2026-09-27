@@ -14,9 +14,9 @@ const io = new Server(server, {
   cors: { origin: '*', methods: ['GET', 'POST'] }
 });
 
-// ========== ACCOUNTS (simple file-based) ==========
+// ========== ACCOUNTS ==========
 const ACCOUNTS_FILE = path.join(__dirname, 'accounts.json');
-let accounts = {}; // username -> { password, data }
+let accounts = {};
 try {
   if (fs.existsSync(ACCOUNTS_FILE)) {
     accounts = JSON.parse(fs.readFileSync(ACCOUNTS_FILE, 'utf8'));
@@ -30,30 +30,23 @@ function saveAccounts() {
 }
 
 // ========== GAME STATE ==========
-const players = {}; // socketId -> player data
-const droppedFruits = {}; // id -> { fruit, x, y, z, owner }
-let fruitIdCounter = 1;
+const players = {};
 const NPC_POS = { x: 20, y: 8, z: 40 };
 
 function createPlayer(id, name) {
   return {
     id,
-    name: name || `Player_${id.slice(0, 5)}`,
+    name: name || `Ninja_${id.slice(0, 5)}`,
     x: NPC_POS.x + (Math.random() - 0.5) * 4,
     y: NPC_POS.y,
     z: NPC_POS.z + (Math.random() - 0.5) * 4,
     rotY: 0,
-    hp: 15,
-    maxHp: 15,
+    hp: 20,
+    maxHp: 20,
+    chakra: 100,
+    maxChakra: 100,
     level: 1,
     exp: 0,
-    dollars: 0,
-    isGiant: false,
-    isDragon: false,
-    isFlying: false,
-    fruit: null,
-    fruitAwakened: false,
-    haki: false,
     lastUpdate: Date.now()
   };
 }
@@ -76,14 +69,12 @@ io.on('connection', (socket) => {
     accounts[username] = {
       password,
       data: {
-        level: 1, exp: 0, maxHp: 15, hp: 15,
-        dollars: 0, damageMult: 1, destroyMult: 1,
-        inventory: [], activeFruitId: null
+        level: 1, exp: 0, maxHp: 20, hp: 20,
+        maxChakra: 100, chakra: 100
       }
     };
     saveAccounts();
     socket.emit('registerResult', { ok: true });
-    console.log(`Registered: ${username}`);
   });
 
   socket.on('login', (data) => {
@@ -96,10 +87,8 @@ io.on('connection', (socket) => {
     }
     socket.username = username;
     socket.emit('loginResult', { ok: true, username, data: acc.data || {} });
-    console.log(`Logged in: ${username}`);
   });
 
-  // Khôi phục acc từ client khi server bị mất file (Render free)
   socket.on('syncAccount', (data) => {
     const username = String(data.username || '').trim().slice(0, 16);
     const password = String(data.password || '').slice(0, 24);
@@ -114,15 +103,13 @@ io.on('connection', (socket) => {
     accounts[username] = {
       password,
       data: data.data || {
-        level: 1, exp: 0, maxHp: 15, hp: 15,
-        dollars: 0, damageMult: 1, destroyMult: 1,
-        inventory: [], activeFruitId: null
+        level: 1, exp: 0, maxHp: 20, hp: 20,
+        maxChakra: 100, chakra: 100
       }
     };
     saveAccounts();
     socket.username = username;
     socket.emit('loginResult', { ok: true, username, data: accounts[username].data });
-    console.log(`Synced + logged in: ${username}`);
   });
 
   socket.on('saveData', (data) => {
@@ -130,13 +117,10 @@ io.on('connection', (socket) => {
     accounts[socket.username].data = {
       level: data.level || 1,
       exp: data.exp || 0,
-      maxHp: data.maxHp || 15,
-      hp: data.hp || 15,
-      dollars: data.dollars || 0,
-      damageMult: data.damageMult || 1,
-      destroyMult: data.destroyMult || 1,
-      inventory: data.inventory || [],
-      activeFruitId: data.activeFruitId || null
+      maxHp: data.maxHp || 20,
+      hp: data.hp || 20,
+      maxChakra: data.maxChakra || 100,
+      chakra: data.chakra || 100
     };
     saveAccounts();
   });
@@ -148,15 +132,12 @@ io.on('connection', (socket) => {
     if (socket.username && accounts[socket.username]) {
       const d = accounts[socket.username].data;
       players[socket.id].level = d.level || 1;
-      players[socket.id].hp = d.hp || 15;
-      players[socket.id].maxHp = d.maxHp || 15;
+      players[socket.id].hp = d.hp || 20;
+      players[socket.id].maxHp = d.maxHp || 20;
+      players[socket.id].chakra = d.chakra || 100;
+      players[socket.id].maxChakra = d.maxChakra || 100;
     }
-    console.log(`Player joined: ${players[socket.id].name}`);
     socket.emit('currentPlayers', players);
-    // send existing dropped fruits
-    for (const id in droppedFruits) {
-      socket.emit('fruitDropped', { id, ...droppedFruits[id] });
-    }
     socket.broadcast.emit('playerJoined', players[socket.id]);
   });
 
@@ -168,21 +149,14 @@ io.on('connection', (socket) => {
     if (typeof data.y === 'number') p.y = data.y;
     if (typeof data.z === 'number') p.z = data.z;
     if (typeof data.rotY === 'number') p.rotY = data.rotY;
-    if (typeof data.isGiant === 'boolean') p.isGiant = data.isGiant;
-    if (typeof data.isDragon === 'boolean') p.isDragon = data.isDragon;
-    if (typeof data.isFlying === 'boolean') p.isFlying = data.isFlying;
-    if (typeof data.haki === 'boolean') p.haki = data.haki;
-    if (data.fruit !== undefined) p.fruit = data.fruit;
-    if (typeof data.fruitAwakened === 'boolean') p.fruitAwakened = data.fruitAwakened;
     if (typeof data.hp === 'number') p.hp = Math.max(0, Math.min(p.maxHp, data.hp));
     if (typeof data.maxHp === 'number') p.maxHp = data.maxHp;
+    if (typeof data.chakra === 'number') p.chakra = Math.max(0, Math.min(p.maxChakra, data.chakra));
     if (typeof data.level === 'number') p.level = data.level;
     p.lastUpdate = Date.now();
     socket.broadcast.emit('playerMoved', {
       id: socket.id, x: p.x, y: p.y, z: p.z, rotY: p.rotY,
-      isGiant: p.isGiant, isDragon: p.isDragon, isFlying: p.isFlying,
-      haki: p.haki, fruit: p.fruit, fruitAwakened: p.fruitAwakened,
-      hp: p.hp, maxHp: p.maxHp, level: p.level
+      hp: p.hp, maxHp: p.maxHp, chakra: p.chakra, maxChakra: p.maxChakra, level: p.level
     });
   });
 
@@ -191,7 +165,7 @@ io.on('connection', (socket) => {
     const attacker = players[socket.id];
     const target = players[data.targetId];
     if (!attacker || !target) return;
-    const dmg = 0.2;
+    const dmg = data.damage || 2;
     target.hp = Math.max(0, target.hp - dmg);
     io.emit('playerDamaged', {
       targetId: data.targetId, attackerId: socket.id,
@@ -202,7 +176,6 @@ io.on('connection', (socket) => {
       target.x = NPC_POS.x + (Math.random() - 0.5) * 3;
       target.y = NPC_POS.y;
       target.z = NPC_POS.z + (Math.random() - 0.5) * 3;
-      target.isGiant = false; target.isDragon = false; target.isFlying = false; target.fruitAwakened = false;
       io.emit('playerRespawned', {
         id: data.targetId, x: target.x, y: target.y, z: target.z,
         hp: target.hp, maxHp: target.maxHp
@@ -219,31 +192,9 @@ io.on('connection', (socket) => {
     io.emit('chatMessage', { id: socket.id, name: p.name, text });
   });
 
-  // ===== DROP / PICK FRUIT =====
-  socket.on('dropFruit', (data) => {
-    if (!data || !data.fruit) return;
-    const id = 'f' + (fruitIdCounter++);
-    droppedFruits[id] = {
-      fruit: data.fruit,
-      x: data.x, y: data.y, z: data.z
-    };
-    io.emit('fruitDropped', { id, ...droppedFruits[id] });
-  });
-
-  socket.on('pickFruit', (data) => {
-    const f = droppedFruits[data.id];
-    if (!f) return;
-    delete droppedFruits[data.id];
-    io.emit('fruitPicked', { id: data.id, fruit: f.fruit, pickerId: socket.id });
-  });
-
   // ===== DISCONNECT =====
   socket.on('disconnect', () => {
     console.log(`[-] Disconnected: ${socket.id}`);
-    // auto save on disconnect
-    if (socket.username && accounts[socket.username] && players[socket.id]) {
-      // client should have been saving; nothing extra needed
-    }
     if (players[socket.id]) {
       io.emit('playerLeft', socket.id);
       delete players[socket.id];
@@ -263,5 +214,5 @@ setInterval(() => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`One Piece 3D Multiplayer Server running on port ${PORT}`);
+  console.log(`Naruto 3D Multiplayer Server running on port ${PORT}`);
 });
